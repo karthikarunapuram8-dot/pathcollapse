@@ -72,6 +72,18 @@ Or install all binaries:
 go install ./cmd/...
 ```
 
+If you are installing directly from GitHub, use:
+
+```bash
+go install github.com/karthikarunapuram8-dot/pathcollapse/cmd/pathcollapse@main
+```
+
+Important note on tags: the `v0.2.0` GitHub release binaries are valid, but the
+module-path rename to `github.com/karthikarunapuram8-dot/pathcollapse` landed
+after that tag was cut. As a result, `go install ...@v0.2.0` will fail even
+though the release downloads work. The first corrected tagged install path will
+be `v0.2.1`.
+
 **Requirements**: Go 1.25+ (see `go.mod`)
 
 ### Performance

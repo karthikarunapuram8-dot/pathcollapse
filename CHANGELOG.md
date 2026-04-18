@@ -23,6 +23,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 - Snapshot and HTML report documentation in README quick-start section
 
 ### Changed
+- Module path now matches the public repository URL (`github.com/karthikarunapuram8-dot/pathcollapse`); `go install ...@main` works immediately, and the first corrected semver tag will be `v0.2.1`
 - Breakpoint recommendations now emit calibrated confidence by default instead of the legacy static `0.85`; `--confidence off` preserves the old behavior for A/B comparison
 - Markdown, JSON, and HTML reports now include recommendation-confidence context, factor breakdowns, and regime information when confidence scoring is enabled
 - README quick-start and examples updated to document calibrated confidence, the BloodHound positioning, and the current experimental package boundaries
