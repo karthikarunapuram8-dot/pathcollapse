@@ -28,11 +28,11 @@ builds:
 
 archives:
   - id: pathcollapse
-    builds: [pathcollapse]
+    ids: [pathcollapse]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
     files:
       - README.md
       - LICENSE
@@ -65,9 +65,9 @@ changelog:
       order: 999
 
 release:
-  github:
-    owner: karunapuram
-    name: pathcollapse
+  # GoReleaser auto-detects owner/name from the git remote.
+  # Hardcoding it (as v0.1.0 did) caused the release job to target a
+  # nonexistent namespace and silently produce no assets.
   draft: false
   prerelease: auto
   name_template: "{{.ProjectName}} v{{.Version}}"
@@ -75,8 +75,6 @@ release:
     ## PathCollapse {{ .Version }}
 
     Graph-based identity exposure analysis for enterprise environments.
-  footer: |
-    **Full Changelog**: https://github.com/karunapuram/pathcollapse/compare/{{ .PreviousTag }}...{{ .Tag }}
 
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"

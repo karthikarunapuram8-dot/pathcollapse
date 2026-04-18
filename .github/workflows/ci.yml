@@ -11,8 +11,12 @@ jobs:
     name: Test (Go ${{ matrix.go }})
     runs-on: ubuntu-latest
     strategy:
+      # go.mod declares `go 1.25.0` and transitive deps (modernc.org/sqlite
+      # → modernc.org/cc, golang.org/x/tools) require Go 1.23+. Older matrix
+      # entries fail at `go mod download`. Keep the matrix aligned with the
+      # minimum the module declares.
       matrix:
-        go: ["1.22", "1.23", "1.24", "1.25"]
+        go: ["1.25"]
 
     steps:
       - uses: actions/checkout@v4
@@ -56,7 +60,10 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          # `latest` resolved to v1.64.8 (built with Go 1.24) which refuses
+          # to load a go.mod targeting Go 1.25. Pin to a version built with
+          # Go 1.25 or later. Bump when the tool ships newer major versions.
+          version: v1.65.0
           args: --timeout=5m
 
   goreleaser-check:

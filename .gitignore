@@ -21,3 +21,7 @@ dist/
 
 # Snapshot DB
 *.db
+
+# Agent scratchpads and release scratch files
+.claude/
+.release-*.md
