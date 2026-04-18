@@ -10,24 +10,13 @@ PathCollapse ingests identity and policy metadata from enterprise environments, 
 
 > **Purely defensive.** PathCollapse is an analytics and reporting tool. It performs no network scanning, credential access, or attack execution.
 
+![PathCollapse CLI demo — ingest, analyze, breakpoints with calibrated confidence, HTML report](docs/assets/demo.gif)
+
+The same run produces a single-file HTML report for CISO review:
+
 ![PathCollapse HTML report overview](docs/assets/report-overview.png)
 
-Real CLI output with calibrated recommendation confidence enabled:
-
-```text
-$ pathcollapse breakpoints --top 3 --confidence on
-INFO: using built-in fixture (pass --graph <snapshot.json> to use ingested data)
-INFO: confidence: no snapshot history at C:\Users\RDPUser\.pathcollapse\snapshots.db — T(e) using cold-start prior (see docs/confidence.md §4.4)
-Top 3 control breakpoints (15 paths analysed, ordered by paths collapsed):
-
-1. Remove can_write_acl_of relationship from Account Operators to Domain Admins
-   type=remove_edge           paths-collapsed=6    risk-reduction=5.442  difficulty=medium  confidence=100%
-   drivers: E=0.36 R=1.00 S=0.72 T=0.30 K=1.00  regime=cold_start
-
-2. Remove alice from group Domain Admins
-   type=remove_member         paths-collapsed=4    risk-reduction=3.755  difficulty=low     confidence=100%
-   drivers: E=0.41 R=1.00 S=0.48 T=0.30 K=1.00  regime=cold_start
-```
+*Demo regenerable via `vhs docs/assets/demo.tape`. Requires [vhs](https://github.com/charmbracelet/vhs), `ttyd`, and `ffmpeg` — `scoop install vhs` on Windows brings all three, `brew install vhs` on macOS.*
 
 ---
 
