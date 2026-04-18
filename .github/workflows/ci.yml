@@ -46,14 +46,11 @@ jobs:
         run: go test -race ./...
 
   lint:
-    name: Lint (advisory)
+    name: Lint
     runs-on: ubuntu-latest
-    # Advisory until the 22 pre-existing errcheck findings are cleaned up
-    # (unchecked fmt.Fprintf, db.Close, g.AddEdge). Lint output surfaces in
-    # the Actions UI but does not block the build. Track in a follow-up
-    # issue; once the findings are zero, remove continue-on-error and
-    # make lint required again.
-    continue-on-error: true
+    # Lint is a required check. The idiomatic fmt.Fprintf / Close() / test
+    # scaffolding errcheck findings are scoped out via .golangci.yml; any
+    # real future finding blocks CI as it should.
     steps:
       - uses: actions/checkout@v4
 
