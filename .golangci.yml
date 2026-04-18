@@ -23,6 +23,11 @@ linters:
         - (*database/sql.Rows).Close
         - (*github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph.Graph).AddEdge
         - (*github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph.Graph).AddNode
+        # Deferred close on our own snapshot store — same pattern as sql.DB.
+        - (*github.com/karthikarunapuram8-dot/pathcollapse/pkg/snapshot.Store).Close
+        # Cobra's MarkFlagRequired only errors on unknown flag names, which
+        # the caller controls statically. Real misuse surfaces at startup.
+        - (*github.com/spf13/cobra.Command).MarkFlagRequired
 
   exclusions:
     # Don't treat the advisory-report ExecutiveSummary fmt.Fprintf calls as
