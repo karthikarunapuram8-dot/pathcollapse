@@ -5,6 +5,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 ## [Unreleased]
 
 ### Added
+- `--quiet` flag on `breakpoints` and `report` to suppress informational stderr notes such as built-in-fixture and cold-start confidence messages
 - Calibrated recommendation confidence system (`pkg/confidence`) with five-factor breakdowns, isotonic calibration, and snapshot-backed temporal stability
 - `--confidence=on|off` flag on `breakpoints` and `report`
 - `pkg/snapshot.Presence` helper to index recent snapshots and satisfy the confidence package's temporal-stability lookup needs

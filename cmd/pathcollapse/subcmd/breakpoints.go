@@ -16,6 +16,7 @@ func NewBreakpointsCmd() *cobra.Command {
 	var top int
 	var graphFile string
 	var confidenceMode string
+	var quiet bool
 
 	cmd := &cobra.Command{
 		Use:   "breakpoints",
@@ -33,7 +34,7 @@ func NewBreakpointsCmd() *cobra.Command {
 				}
 			} else {
 				g = testdata.EnterpriseAD()
-				fmt.Fprintln(cmd.ErrOrStderr(), "INFO: using built-in fixture (pass --graph <snapshot.json> to use ingested data)")
+				fmt.Fprintln(infoWriter(cmd.ErrOrStderr(), quiet), "INFO: using built-in fixture (pass --graph <snapshot.json> to use ingested data)")
 			}
 
 			cfg := scoring.DefaultConfig()
@@ -41,7 +42,7 @@ func NewBreakpointsCmd() *cobra.Command {
 
 			optCfg := controls.DefaultOptimizerConfig()
 			optCfg.MaxRecommendations = top
-			optCfg.Confidence, err = ResolveConfidence(cmd, confidenceMode)
+			optCfg.Confidence, err = ResolveConfidence(cmd, confidenceMode, quiet)
 			if err != nil {
 				return err
 			}
@@ -74,5 +75,6 @@ func NewBreakpointsCmd() *cobra.Command {
 	cmd.Flags().IntVar(&top, "top", 10, "Number of breakpoint recommendations to output")
 	cmd.Flags().StringVar(&graphFile, "graph", "", "Graph snapshot file written by 'ingest --output'")
 	AddConfidenceFlag(cmd, &confidenceMode)
+	AddQuietFlag(cmd, &quiet)
 	return cmd
 }

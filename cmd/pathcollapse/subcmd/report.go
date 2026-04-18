@@ -23,6 +23,7 @@ func NewReportCmd() *cobra.Command {
 	var graphFile string
 	var baselineFile string
 	var confidenceMode string
+	var quiet bool
 
 	cmd := &cobra.Command{
 		Use:   "report",
@@ -41,14 +42,14 @@ func NewReportCmd() *cobra.Command {
 				}
 			} else {
 				g = testdata.EnterpriseAD()
-				fmt.Fprintln(cmd.ErrOrStderr(), "INFO: using built-in fixture (pass --graph <snapshot.json> to use ingested data)")
+				fmt.Fprintln(infoWriter(cmd.ErrOrStderr(), quiet), "INFO: using built-in fixture (pass --graph <snapshot.json> to use ingested data)")
 			}
 
 			cfg := scoring.DefaultConfig()
 			scored := gatherTopPaths(g, cfg, top)
 
 			optCfg := controls.DefaultOptimizerConfig()
-			optCfg.Confidence, err = ResolveConfidence(cmd, confidenceMode)
+			optCfg.Confidence, err = ResolveConfidence(cmd, confidenceMode, quiet)
 			if err != nil {
 				return err
 			}
@@ -85,6 +86,7 @@ func NewReportCmd() *cobra.Command {
 	cmd.Flags().StringVar(&graphFile, "graph", "", "Graph snapshot file written by 'ingest --output'")
 	cmd.Flags().StringVar(&baselineFile, "baseline", "", "Baseline snapshot for drift analysis (HTML only)")
 	AddConfidenceFlag(cmd, &confidenceMode)
+	AddQuietFlag(cmd, &quiet)
 
 	return cmd
 }

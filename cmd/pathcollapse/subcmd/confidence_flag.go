@@ -42,12 +42,12 @@ func AddConfidenceFlag(cmd *cobra.Command, dest *string) {
 //     factor is using the non-informative prior.
 //
 // Invalid flag values return a typed error that Cobra surfaces to the user.
-func ResolveConfidence(cmd *cobra.Command, mode string) (*controls.ConfidenceOptions, error) {
+func ResolveConfidence(cmd *cobra.Command, mode string, quiet bool) (*controls.ConfidenceOptions, error) {
 	switch strings.ToLower(mode) {
 	case confidenceModeOff:
 		return nil, nil
 	case confidenceModeOn:
-		return buildConfidenceOptions(cmd.ErrOrStderr()), nil
+		return buildConfidenceOptions(infoWriter(cmd.ErrOrStderr(), quiet)), nil
 	default:
 		return nil, fmt.Errorf("invalid --confidence value %q: expected %q or %q",
 			mode, confidenceModeOn, confidenceModeOff)
