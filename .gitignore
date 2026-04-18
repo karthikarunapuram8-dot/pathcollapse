@@ -1,0 +1,23 @@
+# Binaries
+/pathcollapse
+/pathcollapse-ingest
+/pathcollapse-analyze
+/pathcollapse-report
+/pathcollapse-diff
+dist/
+
+# Go
+*.test
+*.prof
+/vendor/
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Snapshot DB
+*.db

@@ -1,0 +1,61 @@
+{
+  "nodes": [
+    {"id": "usr-alice",     "type": "user",           "name": "alice"},
+    {"id": "usr-bob",       "type": "user",           "name": "bob"},
+    {"id": "usr-charlie",   "type": "user",           "name": "charlie"},
+    {"id": "usr-helpdesk1", "type": "user",           "name": "helpdesk1"},
+    {"id": "usr-helpdesk2", "type": "user",           "name": "helpdesk2"},
+
+    {"id": "grp-domain-admins",     "type": "group", "name": "Domain Admins",     "tags": ["tier0"]},
+    {"id": "grp-enterprise-admins", "type": "group", "name": "Enterprise Admins", "tags": ["tier0"]},
+    {"id": "grp-account-operators", "type": "group", "name": "Account Operators", "tags": ["tier1"]},
+    {"id": "grp-server-admins",     "type": "group", "name": "Server Admins",     "tags": ["tier1"]},
+    {"id": "grp-helpdesk",          "type": "group", "name": "Help Desk",         "tags": ["tier2"]},
+    {"id": "grp-developers",        "type": "group", "name": "Developers",        "tags": ["tier2"]},
+    {"id": "grp-cert-publishers",   "type": "group", "name": "Cert Publishers",   "tags": ["tier1"]},
+
+    {"id": "cmp-dc01",        "type": "computer", "name": "DC01",        "tags": ["tier0"]},
+    {"id": "cmp-dc02",        "type": "computer", "name": "DC02",        "tags": ["tier0"]},
+    {"id": "cmp-adcs01",      "type": "computer", "name": "ADCS01",      "tags": ["tier0"]},
+    {"id": "cmp-fileserver01","type": "computer", "name": "FILESERVER01","tags": ["tier1"]},
+    {"id": "cmp-sqlserver01", "type": "computer", "name": "SQLSERVER01", "tags": ["tier1"]},
+    {"id": "cmp-jumpbox01",   "type": "computer", "name": "JUMPBOX01",   "tags": ["tier1"]},
+
+    {"id": "svc-sql",     "type": "service_account", "name": "svc-sql"},
+    {"id": "svc-web",     "type": "service_account", "name": "svc-web"},
+    {"id": "svc-backup",  "type": "service_account", "name": "svc-backup"},
+    {"id": "svc-monitor", "type": "service_account", "name": "svc-monitor"},
+    {"id": "svc-deploy",  "type": "service_account", "name": "svc-deploy"},
+
+    {"id": "ca-corp",        "type": "certificate_authority", "name": "CORP-CA"},
+    {"id": "cert-tmpl-user", "type": "cert_template",         "name": "User Cert Template",
+     "attributes": {"enrollee_supplies_subject": true, "client_authentication": true}},
+    {"id": "trust-partner",  "type": "trust",                 "name": "Partner Domain Trust"}
+  ],
+  "edges": [
+    {"id": "e-alice-domadmins",    "type": "member_of",         "source": "usr-alice",    "target": "grp-domain-admins",    "confidence": 1.0, "exploitability": 0.9, "detectability": 0.3, "blast_radius": 0.9},
+    {"id": "e-bob-srvadmins",      "type": "member_of",         "source": "usr-bob",      "target": "grp-server-admins",    "confidence": 1.0, "exploitability": 0.7, "detectability": 0.4, "blast_radius": 0.7},
+    {"id": "e-charlie-acctops",    "type": "member_of",         "source": "usr-charlie",  "target": "grp-account-operators","confidence": 1.0, "exploitability": 0.6, "detectability": 0.5, "blast_radius": 0.6},
+    {"id": "e-hd1-helpdesk",       "type": "member_of",         "source": "usr-helpdesk1","target": "grp-helpdesk",         "confidence": 1.0, "exploitability": 0.4, "detectability": 0.6, "blast_radius": 0.4},
+    {"id": "e-hd2-helpdesk",       "type": "member_of",         "source": "usr-helpdesk2","target": "grp-helpdesk",         "confidence": 1.0, "exploitability": 0.4, "detectability": 0.6, "blast_radius": 0.4},
+
+    {"id": "e-helpdesk-pwreset",   "type": "can_reset_password_of","source": "grp-helpdesk","target": "grp-account-operators","confidence": 0.9, "exploitability": 0.7, "detectability": 0.3, "blast_radius": 0.7},
+    {"id": "e-acctops-acl",        "type": "can_write_acl_of",     "source": "grp-account-operators","target": "grp-domain-admins","confidence": 0.8, "exploitability": 0.8, "detectability": 0.2, "blast_radius": 0.9},
+
+    {"id": "e-domadmins-dc01",     "type": "admin_to","source": "grp-domain-admins","target": "cmp-dc01",       "confidence": 1.0, "exploitability": 1.0, "detectability": 0.2, "blast_radius": 1.0},
+    {"id": "e-domadmins-dc02",     "type": "admin_to","source": "grp-domain-admins","target": "cmp-dc02",       "confidence": 1.0, "exploitability": 1.0, "detectability": 0.2, "blast_radius": 1.0},
+    {"id": "e-domadmins-adcs01",   "type": "admin_to","source": "grp-domain-admins","target": "cmp-adcs01",     "confidence": 1.0, "exploitability": 1.0, "detectability": 0.2, "blast_radius": 1.0},
+    {"id": "e-srvadmins-file",     "type": "admin_to","source": "grp-server-admins","target": "cmp-fileserver01","confidence": 1.0, "exploitability": 0.8, "detectability": 0.4, "blast_radius": 0.7},
+    {"id": "e-srvadmins-sql",      "type": "admin_to","source": "grp-server-admins","target": "cmp-sqlserver01","confidence": 1.0, "exploitability": 0.8, "detectability": 0.4, "blast_radius": 0.7},
+
+    {"id": "e-svcsql-delegate",    "type": "can_delegate_to","source": "svc-sql",   "target": "cmp-dc01",       "confidence": 0.9, "exploitability": 0.8, "detectability": 0.2, "blast_radius": 0.9},
+    {"id": "e-svcsql-admin",       "type": "admin_to",       "source": "svc-sql",   "target": "cmp-sqlserver01","confidence": 1.0, "exploitability": 0.7, "detectability": 0.4, "blast_radius": 0.6},
+    {"id": "e-svcbackup-dcsync",   "type": "can_sync_to",    "source": "svc-backup","target": "cmp-dc01",       "confidence": 0.7, "exploitability": 0.9, "detectability": 0.2, "blast_radius": 1.0},
+    {"id": "e-svcdeploy-jumpbox",  "type": "local_admin_to", "source": "svc-deploy","target": "cmp-jumpbox01",  "confidence": 1.0, "exploitability": 0.6, "detectability": 0.5, "blast_radius": 0.4},
+
+    {"id": "e-domadmins-certtmpl", "type": "can_enroll_in","source": "grp-domain-admins","target": "cert-tmpl-user","confidence": 0.9, "exploitability": 0.8, "detectability": 0.3, "blast_radius": 0.8},
+    {"id": "e-devs-certtmpl",      "type": "can_enroll_in","source": "grp-developers",   "target": "cert-tmpl-user","confidence": 0.9, "exploitability": 0.7, "detectability": 0.4, "blast_radius": 0.7},
+    {"id": "e-certpub-ca",         "type": "admin_to",      "source": "grp-cert-publishers","target": "ca-corp",  "confidence": 0.9, "exploitability": 0.8, "detectability": 0.3, "blast_radius": 0.8},
+    {"id": "e-trust-domadmins",    "type": "trusted_by",    "source": "trust-partner","target": "grp-domain-admins","confidence": 0.6, "exploitability": 0.5, "detectability": 0.3, "blast_radius": 0.6}
+  ]
+}
