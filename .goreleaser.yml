@@ -1,0 +1,82 @@
+version: 2
+
+project_name: pathcollapse
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod verify
+
+builds:
+  - id: pathcollapse
+    main: ./cmd/pathcollapse
+    binary: pathcollapse
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: pathcollapse
+    builds: [pathcollapse]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - CONTRIBUTING.md
+      - SECURITY.md
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^ci:"
+  groups:
+    - title: Features
+      regexp: "^feat"
+      order: 0
+    - title: Bug Fixes
+      regexp: "^fix"
+      order: 1
+    - title: Performance
+      regexp: "^perf"
+      order: 2
+    - title: Other
+      order: 999
+
+release:
+  github:
+    owner: karunapuram
+    name: pathcollapse
+  draft: false
+  prerelease: auto
+  name_template: "{{.ProjectName}} v{{.Version}}"
+  header: |
+    ## PathCollapse {{ .Version }}
+
+    Graph-based identity exposure analysis for enterprise environments.
+  footer: |
+    **Full Changelog**: https://github.com/karunapuram/pathcollapse/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
