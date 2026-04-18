@@ -3,7 +3,7 @@ package snapshot
 import (
 	"fmt"
 
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // Presence answers "in what fraction of the N most recent snapshots did this

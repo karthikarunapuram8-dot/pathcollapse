@@ -6,9 +6,9 @@ package reasoning
 import (
 	"sort"
 
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/model"
-	"github.com/karunapuram/pathcollapse/pkg/scoring"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/scoring"
 )
 
 // Mode controls the depth of path analysis.

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // BuildLinear creates a graph with n nodes linked in a chain: n0 → n1 → ... → n(n-1).

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/karunapuram/pathcollapse/pkg/ingest"
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/ingest"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 func TestNormalize_DeduplicatesNodesByID(t *testing.T) {

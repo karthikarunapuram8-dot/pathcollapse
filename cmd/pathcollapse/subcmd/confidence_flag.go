@@ -8,10 +8,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/karunapuram/pathcollapse/pkg/confidence"
-	"github.com/karunapuram/pathcollapse/pkg/controls"
-	"github.com/karunapuram/pathcollapse/pkg/scoring"
-	"github.com/karunapuram/pathcollapse/pkg/snapshot"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/confidence"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/controls"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/scoring"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/snapshot"
 )
 
 // confidenceModeOn / confidenceModeOff are the accepted values for the

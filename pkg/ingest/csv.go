@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // CSVUserAdapter parses a CSV with columns: id,name,type,tags

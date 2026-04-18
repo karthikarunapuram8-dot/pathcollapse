@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // jsonNode is the wire format for a node in the generic JSON schema.

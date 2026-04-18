@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/karunapuram/pathcollapse/internal/testdata"
-	"github.com/karunapuram/pathcollapse/pkg/controls"
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/model"
-	"github.com/karunapuram/pathcollapse/pkg/reporting"
-	"github.com/karunapuram/pathcollapse/pkg/scoring"
+	"github.com/karthikarunapuram8-dot/pathcollapse/internal/testdata"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/controls"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/reporting"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/scoring"
 )
 
 func TestFullPipeline(t *testing.T) {

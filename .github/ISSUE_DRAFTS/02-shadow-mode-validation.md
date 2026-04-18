@@ -2,7 +2,7 @@
 
 <!--
 Draft issue body. Open with:
-    gh issue create --repo karunapuram/pathcollapse \
+    gh issue create --repo karthikarunapuram8-dot/pathcollapse \
       --title "Shadow-mode data collection and calibrator refit command" \
       --body-file .github/ISSUE_DRAFTS/02-shadow-mode-validation.md
 -->

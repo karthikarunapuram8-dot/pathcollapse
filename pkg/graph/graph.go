@@ -8,7 +8,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // Sentinel errors returned by graph mutation operations.

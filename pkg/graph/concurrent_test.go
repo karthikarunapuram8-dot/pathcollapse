@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // TestConcurrentAddNode verifies that concurrent AddNode calls are race-free.

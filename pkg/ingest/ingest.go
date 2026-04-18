@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // Result holds everything produced by a successful ingest.

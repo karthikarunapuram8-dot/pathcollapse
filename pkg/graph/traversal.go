@@ -3,7 +3,7 @@ package graph
 import (
 	"sort"
 
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // FilteredTraversal performs a BFS from startID, returning all paths reachable

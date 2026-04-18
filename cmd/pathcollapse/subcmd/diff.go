@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/karunapuram/pathcollapse/pkg/drift"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/drift"
 )
 
 // NewDiffCmd returns the diff subcommand.

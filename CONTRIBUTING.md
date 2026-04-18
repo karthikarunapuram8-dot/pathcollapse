@@ -5,7 +5,7 @@ Thank you for helping improve PathCollapse.
 ## Development Setup
 
 ```bash
-git clone https://github.com/karunapuram/pathcollapse
+git clone https://github.com/karthikarunapuram8-dot/pathcollapse
 cd pathcollapse
 go mod download
 go build ./...

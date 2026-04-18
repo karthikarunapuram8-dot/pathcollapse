@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // buildLinearGraph creates: u0 -[e01]-> u1 -[e12]-> u2

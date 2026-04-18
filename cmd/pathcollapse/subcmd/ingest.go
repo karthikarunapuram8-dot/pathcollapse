@@ -7,10 +7,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/ingest"
-	"github.com/karunapuram/pathcollapse/pkg/model"
-	"github.com/karunapuram/pathcollapse/pkg/normalize"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/ingest"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/normalize"
 )
 
 // NewIngestCmd returns the ingest subcommand.

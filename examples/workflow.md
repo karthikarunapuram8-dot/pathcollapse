@@ -112,7 +112,7 @@ The resulting report includes:
 Use the detection package programmatically:
 
 ```go
-import "github.com/karunapuram/pathcollapse/pkg/detection"
+import "github.com/karthikarunapuram8-dot/pathcollapse/pkg/detection"
 
 art := detection.MapPath(path)
 fmt.Println(art.SigmaRule)   // Sigma YAML

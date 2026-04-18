@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/karunapuram/pathcollapse/pkg/controls"
-	"github.com/karunapuram/pathcollapse/pkg/drift"
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/model"
-	"github.com/karunapuram/pathcollapse/pkg/scoring"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/controls"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/drift"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/scoring"
 )
 
 // Result is the output of executing a DSL statement.

@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/karunapuram/pathcollapse/pkg/controls"
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/controls"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // renderHTML writes a single-file self-contained HTML report with inline CSS.

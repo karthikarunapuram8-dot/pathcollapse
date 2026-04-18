@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/karunapuram/pathcollapse/pkg/confidence"
-	"github.com/karunapuram/pathcollapse/pkg/controls"
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/model"
-	"github.com/karunapuram/pathcollapse/pkg/scoring"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/confidence"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/controls"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/scoring"
 )
 
 func buildTestReport(t *testing.T) (*Report, *graph.Graph) {

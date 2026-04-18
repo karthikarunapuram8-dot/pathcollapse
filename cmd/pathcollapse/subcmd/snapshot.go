@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/karunapuram/pathcollapse/internal/testdata"
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/snapshot"
+	"github.com/karthikarunapuram8-dot/pathcollapse/internal/testdata"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/snapshot"
 )
 
 // NewSnapshotCmd returns the snapshot command group.

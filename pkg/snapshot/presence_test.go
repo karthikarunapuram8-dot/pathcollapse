@@ -3,9 +3,9 @@ package snapshot_test
 import (
 	"testing"
 
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/model"
-	"github.com/karunapuram/pathcollapse/pkg/snapshot"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/snapshot"
 )
 
 // buildGraphWithEdges returns a graph containing the named edges. Each

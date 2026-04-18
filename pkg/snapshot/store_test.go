@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/karunapuram/pathcollapse/internal/testdata"
-	"github.com/karunapuram/pathcollapse/pkg/snapshot"
+	"github.com/karthikarunapuram8-dot/pathcollapse/internal/testdata"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/snapshot"
 )
 
 func openTempStore(t *testing.T) *snapshot.Store {

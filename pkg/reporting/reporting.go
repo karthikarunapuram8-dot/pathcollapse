@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/karunapuram/pathcollapse/pkg/controls"
-	"github.com/karunapuram/pathcollapse/pkg/detection"
-	"github.com/karunapuram/pathcollapse/pkg/drift"
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/scoring"
-	"github.com/karunapuram/pathcollapse/pkg/telemetry"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/controls"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/detection"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/drift"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/scoring"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/telemetry"
 )
 
 // Format selects the output format.

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // buildGraph is a test helper that creates a graph with the given nodes and edges.

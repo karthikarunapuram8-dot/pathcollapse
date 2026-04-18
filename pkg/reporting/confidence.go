@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/karunapuram/pathcollapse/pkg/confidence"
-	"github.com/karunapuram/pathcollapse/pkg/controls"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/confidence"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/controls"
 )
 
 // ConfidenceSummary aggregates confidence statistics across the

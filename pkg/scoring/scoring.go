@@ -6,8 +6,8 @@ package scoring
 import (
 	"sort"
 
-	"github.com/karunapuram/pathcollapse/pkg/graph"
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/graph"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // ScoringConfig holds tunable weights that must sum to 1.0.

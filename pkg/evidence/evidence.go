@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 )
 
 // Store holds evidence references indexed by source and type.

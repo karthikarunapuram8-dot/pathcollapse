@@ -2,7 +2,7 @@
 
 <!--
 Draft issue body. Open with:
-    gh issue create --repo karunapuram/pathcollapse \
+    gh issue create --repo karthikarunapuram8-dot/pathcollapse \
       --title "Suppress cold-start confidence INFO note in non-TTY and --quiet runs" \
       --body-file .github/ISSUE_DRAFTS/01-suppress-coldstart-note.md
 -->

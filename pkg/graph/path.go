@@ -1,6 +1,6 @@
 package graph
 
-import "github.com/karunapuram/pathcollapse/pkg/model"
+import "github.com/karthikarunapuram8-dot/pathcollapse/pkg/model"
 
 // Path is an ordered sequence of alternating nodes and edges through the graph.
 type Path struct {

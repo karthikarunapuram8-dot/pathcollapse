@@ -1,4 +1,4 @@
-module github.com/karunapuram/pathcollapse
+module github.com/karthikarunapuram8-dot/pathcollapse
 
 go 1.25.0
 

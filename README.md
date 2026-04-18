@@ -1,7 +1,7 @@
 # PathCollapse
 
-[![CI](https://github.com/karunapuram/pathcollapse/actions/workflows/ci.yml/badge.svg)](https://github.com/karunapuram/pathcollapse/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/karunapuram/pathcollapse)](https://goreportcard.com/report/github.com/karunapuram/pathcollapse)
+[![CI](https://github.com/karthikarunapuram8-dot/pathcollapse/actions/workflows/ci.yml/badge.svg)](https://github.com/karthikarunapuram8-dot/pathcollapse/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/karthikarunapuram8-dot/pathcollapse)](https://goreportcard.com/report/github.com/karthikarunapuram8-dot/pathcollapse)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 **Graph-based identity exposure analysis that finds the smallest fixes with the biggest security impact.**
@@ -50,7 +50,7 @@ Top 3 control breakpoints (15 paths analysed, ordered by paths collapsed):
 
 ### Pre-built binaries (recommended)
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/karunapuram/pathcollapse/releases):
+Download the latest release for your platform from [GitHub Releases](https://github.com/karthikarunapuram8-dot/pathcollapse/releases):
 
 ```bash
 # macOS / Linux — extract and move to PATH
@@ -61,7 +61,7 @@ mv pathcollapse /usr/local/bin/
 ### Build from source
 
 ```bash
-git clone https://github.com/karunapuram/pathcollapse
+git clone https://github.com/karthikarunapuram8-dot/pathcollapse
 cd pathcollapse
 go build ./cmd/pathcollapse
 ```

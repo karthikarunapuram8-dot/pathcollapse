@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/karunapuram/pathcollapse/cmd/pathcollapse/subcmd"
+	"github.com/karthikarunapuram8-dot/pathcollapse/cmd/pathcollapse/subcmd"
 )
 
 func main() {
