@@ -22,13 +22,15 @@ func NewReportCmd() *cobra.Command {
 	var outputFile string
 	var graphFile string
 	var baselineFile string
+	var confidenceMode string
 
 	cmd := &cobra.Command{
 		Use:   "report",
 		Short: "Generate an analysis report",
 		Example: `  pathcollapse report --format markdown
   pathcollapse report --graph /tmp/graph.json --format html --output report.html
-  pathcollapse report --graph snapshot.json --baseline baseline.json --format html --output drift-report.html`,
+  pathcollapse report --graph snapshot.json --baseline baseline.json --format html --output drift-report.html
+  pathcollapse report --confidence off   # skip calibrated scoring in rendered output`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var g *graph.Graph
 			var err error
@@ -42,14 +44,15 @@ func NewReportCmd() *cobra.Command {
 				fmt.Fprintln(cmd.ErrOrStderr(), "INFO: using built-in fixture (pass --graph <snapshot.json> to use ingested data)")
 			}
 
-			allPaths := gatherTopPaths(g, top*3)
 			cfg := scoring.DefaultConfig()
-			scored := scoring.RankPaths(allPaths, g, cfg)
-			if len(scored) > top {
-				scored = scored[:top]
-			}
+			scored := gatherTopPaths(g, cfg, top)
 
-			recs := controls.Optimize(scored, g, controls.DefaultOptimizerConfig())
+			optCfg := controls.DefaultOptimizerConfig()
+			optCfg.Confidence, err = ResolveConfidence(cmd, confidenceMode)
+			if err != nil {
+				return err
+			}
+			recs := controls.Optimize(scored, g, optCfg)
 
 			rep := reporting.BuildReport(g, scored, recs)
 
@@ -81,6 +84,7 @@ func NewReportCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&outputFile, "output", "o", "", "Output file (default: stdout)")
 	cmd.Flags().StringVar(&graphFile, "graph", "", "Graph snapshot file written by 'ingest --output'")
 	cmd.Flags().StringVar(&baselineFile, "baseline", "", "Baseline snapshot for drift analysis (HTML only)")
+	AddConfidenceFlag(cmd, &confidenceMode)
 
 	return cmd
 }

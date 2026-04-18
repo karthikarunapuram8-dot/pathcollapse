@@ -126,9 +126,9 @@ func newSnapshotListCmd(openStore func() (*snapshot.Store, error)) *cobra.Comman
 
 func newSnapshotDiffCmd(openStore func() (*snapshot.Store, error)) *cobra.Command {
 	return &cobra.Command{
-		Use:   "diff <old-id> <new-id>",
-		Short: "Compare two stored snapshots and report drift",
-		Args:  cobra.ExactArgs(2),
+		Use:     "diff <old-id> <new-id>",
+		Short:   "Compare two stored snapshots and report drift",
+		Args:    cobra.ExactArgs(2),
 		Example: `  pathcollapse snapshot diff 1 3`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			oldID, err := strconv.ParseInt(args[0], 10, 64)
@@ -176,8 +176,8 @@ func newSnapshotPruneCmd(openStore func() (*snapshot.Store, error)) *cobra.Comma
 	var keepMin int
 
 	cmd := &cobra.Command{
-		Use:   "prune",
-		Short: "Delete old snapshots from the database",
+		Use:     "prune",
+		Short:   "Delete old snapshots from the database",
 		Example: `  pathcollapse snapshot prune --older-than 30 --keep-min 5`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			store, err := openStore()

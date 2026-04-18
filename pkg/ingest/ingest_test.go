@@ -46,6 +46,39 @@ func TestJSONAdapter_EmptyNodeID(t *testing.T) {
 	}
 }
 
+func TestJSONAdapter_PreservesExplicitZeroMetrics(t *testing.T) {
+	raw := `{
+		"nodes": [
+			{"id":"u1","type":"user","name":"Alice"},
+			{"id":"c1","type":"computer","name":"DC01"}
+		],
+		"edges": [
+			{
+				"id":"e1",
+				"type":"admin_to",
+				"source":"u1",
+				"target":"c1",
+				"confidence":0,
+				"exploitability":0,
+				"detectability":0,
+				"blast_radius":0
+			}
+		]
+	}`
+
+	res, err := (&JSONAdapter{}).Ingest(strings.NewReader(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Edges) != 1 {
+		t.Fatalf("expected 1 edge, got %d", len(res.Edges))
+	}
+	e := res.Edges[0]
+	if e.Confidence != 0 || e.Exploitability != 0 || e.Detectability != 0 || e.BlastRadius != 0 {
+		t.Fatalf("expected explicit zero metrics to be preserved, got %+v", *e)
+	}
+}
+
 func TestCSVUserAdapter(t *testing.T) {
 	raw := "id,name,type,tags\nu1,Alice,user,tier1;vip\nu2,Bob,service_account,"
 	a := &CSVUserAdapter{}
@@ -115,6 +148,38 @@ edges:
 	}
 	if len(res.Edges) != 1 || res.Edges[0].Confidence != 0.95 {
 		t.Fatalf("expected 1 edge with conf 0.95, got %v", res.Edges)
+	}
+}
+
+func TestYAMLAdapter_PreservesExplicitZeroMetrics(t *testing.T) {
+	raw := `
+nodes:
+  - id: u1
+    type: user
+    name: Alice
+  - id: c1
+    type: computer
+    name: DC01
+edges:
+  - id: e1
+    type: admin_to
+    source: u1
+    target: c1
+    confidence: 0
+    exploitability: 0
+    detectability: 0
+    blast_radius: 0
+`
+	res, err := (&YAMLAdapter{}).Ingest(strings.NewReader(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Edges) != 1 {
+		t.Fatalf("expected 1 edge, got %d", len(res.Edges))
+	}
+	e := res.Edges[0]
+	if e.Confidence != 0 || e.Exploitability != 0 || e.Detectability != 0 || e.BlastRadius != 0 {
+		t.Fatalf("expected explicit zero metrics to be preserved, got %+v", *e)
 	}
 }
 

@@ -7,10 +7,12 @@ import (
 
 	"github.com/karunapuram/pathcollapse/pkg/graph"
 	"github.com/karunapuram/pathcollapse/pkg/model"
+	"github.com/karunapuram/pathcollapse/pkg/scoring"
 )
 
-// gatherTopPaths collects paths from all nodes to all tier-0 targets, up to limit.
-func gatherTopPaths(g *graph.Graph, limit int) []graph.Path {
+// gatherTopPaths collects all paths to tier-0 targets, ranks them, and returns
+// the highest-risk subset up to limit.
+func gatherTopPaths(g *graph.Graph, cfg scoring.ScoringConfig, limit int) []scoring.ScoredPath {
 	opts := graph.DefaultPathOptions()
 	var paths []graph.Path
 	for _, tgt := range g.Nodes() {
@@ -23,12 +25,14 @@ func gatherTopPaths(g *graph.Graph, limit int) []graph.Path {
 			}
 			found := g.FindPaths(src.ID, tgt.ID, opts)
 			paths = append(paths, found...)
-			if len(paths) >= limit {
-				return paths
-			}
 		}
 	}
-	return paths
+
+	scored := scoring.RankPaths(paths, g, cfg)
+	if limit > 0 && len(scored) > limit {
+		scored = scored[:limit]
+	}
+	return scored
 }
 
 // LoadGraphFromFile reads a PathCollapse graph snapshot (written by ingest --output)

@@ -10,6 +10,25 @@ PathCollapse ingests identity and policy metadata from enterprise environments, 
 
 > **Purely defensive.** PathCollapse is an analytics and reporting tool. It performs no network scanning, credential access, or attack execution.
 
+![PathCollapse HTML report overview](docs/assets/report-overview.png)
+
+Real CLI output with calibrated recommendation confidence enabled:
+
+```text
+$ pathcollapse breakpoints --top 3 --confidence on
+INFO: using built-in fixture (pass --graph <snapshot.json> to use ingested data)
+INFO: confidence: no snapshot history at C:\Users\RDPUser\.pathcollapse\snapshots.db — T(e) using cold-start prior (see docs/confidence.md §4.4)
+Top 3 control breakpoints (15 paths analysed, ordered by paths collapsed):
+
+1. Remove can_write_acl_of relationship from Account Operators to Domain Admins
+   type=remove_edge           paths-collapsed=6    risk-reduction=5.442  difficulty=medium  confidence=100%
+   drivers: E=0.36 R=1.00 S=0.72 T=0.30 K=1.00  regime=cold_start
+
+2. Remove alice from group Domain Admins
+   type=remove_member         paths-collapsed=4    risk-reduction=3.755  difficulty=low     confidence=100%
+   drivers: E=0.41 R=1.00 S=0.48 T=0.30 K=1.00  regime=cold_start
+```
+
 ---
 
 ## Features
@@ -17,10 +36,11 @@ PathCollapse ingests identity and policy metadata from enterprise environments, 
 - **Typed identity graph** — 15 node types, 17 edge types covering AD/Entra ID relationships
 - **Multi-mode path reasoning** — Reachability, Plausibility (condition-filtered), and full Defensive analysis
 - **Greedy breakpoint optimizer** — set-cover algorithm finds the fewest changes with the most impact
-- **Detection mapper** — generates Sigma rules, KQL queries, SPL queries, and ATT&CK mappings per path
+- **Calibrated recommendation confidence** — five-factor decomposable score (evidence, robustness, safety, temporal stability, coverage concentration) with isotonic calibration; replaces the legacy static value and ships with per-factor explanations and a `--confidence=on|off` CLI flag. See [docs/confidence.md](docs/confidence.md).
+- **Detection mapper** — generates path-aware ATT&CK mappings, log-source guidance, telemetry requirements, and templated Sigma/KQL/SPL content
 - **Drift detection** — snapshot diffing highlights new privileged memberships, delegation changes, cert template drift
 - **SQLite snapshot persistence** — save, list, diff, and prune graph snapshots with `pathcollapse snapshot`
-- **HTML reports** — single-file CISO-ready reports with executive summary, risk paths, breakpoints, and drift
+- **HTML reports** — single-file CISO-ready reports with executive summary, risk paths, breakpoints, detection content, telemetry guidance, and drift
 - **Analyst DSL** — human-readable query language: `FIND PATHS FROM user:alice TO privilege:tier0 WHERE confidence > 0.7`
 - **Multiple ingestion formats** — Generic JSON, CSV (users/groups/admins/GPOs), BloodHound JSON exports, YAML facts
 
@@ -52,11 +72,23 @@ Or install all binaries:
 go install ./cmd/...
 ```
 
-**Requirements**: Go 1.22+
+**Requirements**: Go 1.25+ (see `go.mod`)
 
 ### Performance
 
 See [BENCHMARKS.md](BENCHMARKS.md) for latency and memory numbers.
+
+---
+
+## Why PathCollapse
+
+BloodHound is excellent at graphing privilege relationships and finding attack paths. PathCollapse is aimed at a different question:
+
+- **Not just "what paths exist?" but "which few control changes collapse the most risk?"**
+- **Defender-first output** with breakpoint recommendations, drift reports, ATT&CK mappings, telemetry requirements, and report-ready artifacts
+- **Operational prioritization** via tunable scoring, ranked paths, and greedy set-cover optimization
+
+If BloodHound helps answer *how an attacker could move*, PathCollapse is trying to answer *what a defender should fix first*.
 
 ---
 
@@ -90,10 +122,20 @@ pathcollapse analyze --graph snapshot-feb.json --baseline snapshot-jan.json \
 pathcollapse report --graph snapshot.json --format markdown --top 20
 pathcollapse report --graph snapshot.json --format json --output report.json
 
-# HTML report for CISO review (with optional drift section)
+# HTML report for CISO review, including ATT&CK mappings, telemetry guidance,
+# and generated detection content
 pathcollapse report --graph snapshot.json --format html --output report.html
 pathcollapse report --graph snapshot.json --baseline baseline.json --format html --output drift-report.html
+
+# Disable calibrated recommendation confidence and emit the legacy static 0.85
+pathcollapse report --graph snapshot.json --format markdown --confidence off
 ```
+
+Reports now include:
+- Ranked attack paths and breakpoint recommendations
+- Path-specific ATT&CK mappings and log sources
+- Generated Sigma, KQL, and SPL content seeded with path context
+- Telemetry requirements and known visibility gaps
 
 ### Diff two snapshots
 
@@ -122,7 +164,23 @@ pathcollapse snapshot prune --older-than 90 --keep-min 5
 
 ```bash
 pathcollapse breakpoints --graph snapshot.json --top 10
+
+# Legacy static 0.85 confidence (skip calibrated scoring)
+pathcollapse breakpoints --graph snapshot.json --top 10 --confidence off
 ```
+
+Each recommendation includes a calibrated `confidence` (default) with a
+per-factor breakdown `E=evidence R=robustness S=safety T=temporal K=coverage`
+and a `regime` label (`cold_start` / `partial` / `calibrated`) reflecting
+how much labeled outcome data the active calibrator was fit against. When
+no snapshot history is available at `~/.pathcollapse/snapshots.db`, the
+tool prints a single stderr note and falls back to the cold-start prior
+for the temporal factor T(e). Pass `--confidence off` on either
+`breakpoints` or `report` to disable the system entirely and restore the
+legacy static `0.85` value on every recommendation. The default is `on` for
+both `breakpoints` and `report`.
+
+See [docs/confidence.md](docs/confidence.md) for the full algorithm.
 
 ---
 
@@ -142,13 +200,15 @@ Graph Engine (pkg/graph)
     ├──► Reasoning (pkg/reasoning)
     │        Reachability / Plausibility / Defensive modes
     ├──► Controls (pkg/controls)
-    │        Greedy set-cover breakpoint optimizer  ← KILLER FEATURE
+    │        Greedy set-cover breakpoint optimizer
+    ├──► Confidence (pkg/confidence)
+    │        Five-factor calibrated scoring per recommendation
     ├──► Detection (pkg/detection)
     │        Sigma / KQL / SPL generation, ATT&CK mapping
     ├──► Drift (pkg/drift)
     │        Snapshot comparison, blast-radius delta
     └──► Reporting (pkg/reporting)
-             Executive + engineer reports, Markdown / JSON
+             Executive + engineer reports, Markdown / JSON / HTML with detection content
 ```
 
 ---
@@ -212,6 +272,7 @@ All weights are tunable via `ScoringConfig`. See [docs/scoring.md](docs/scoring.
 | `pkg/normalize` | Data canonicalization |
 | `pkg/reasoning` | Three analysis modes |
 | `pkg/controls` | Breakpoint optimizer |
+| `pkg/confidence` | Five-factor calibrated confidence scoring (see [docs/confidence.md](docs/confidence.md)) |
 | `pkg/detection` | Sigma/KQL/SPL generation |
 | `pkg/drift` | Snapshot diffing |
 | `pkg/query` | DSL lexer + parser + executor |
@@ -220,7 +281,6 @@ All weights are tunable via `ScoringConfig`. See [docs/scoring.md](docs/scoring.
 | `pkg/policy` | Policy rule evaluation |
 | `pkg/telemetry` | Telemetry requirement mapping |
 | `pkg/evidence` | Evidence reference management |
-| `pkg/providers` | LLM provider abstraction |
 
 ---
 
@@ -235,11 +295,14 @@ All weights are tunable via `ScoringConfig`. See [docs/scoring.md](docs/scoring.
 | Risk scoring (configurable weights) | ✅ Implemented with tests |
 | Path finding (iterative DFS, depth-limited) | ✅ Implemented with tests |
 | Breakpoint optimizer (greedy set-cover) | ✅ Implemented with tests |
+| Calibrated recommendation confidence | ✅ Five-factor decomposition, log-odds aggregation, isotonic calibrator, `--confidence=on\|off` flag on `breakpoints` and `report` |
+| Snapshot-backed temporal factor T(e) | ✅ `pkg/snapshot.Presence` indexes recent snapshots; cold-start stderr note when history is unavailable |
 | DSL lexer + parser | ✅ Implemented with tests |
 | `FIND PATHS` query execution | ✅ Returns ranked paths |
 | `FIND BREAKPOINTS` query execution | ✅ Returns control recommendations |
 | `SHOW DRIFT` query execution | ✅ Requires `--baseline` flag; calls `drift.CompareSnapshots` |
-| Markdown + JSON reporting | ✅ Implemented with tests |
+| Markdown / JSON / HTML reporting | ✅ Implemented with tests |
+| Detection + telemetry in reports | ✅ Path-aware ATT&CK, log sources, telemetry guidance, and generated Sigma/KQL/SPL content |
 | Drift detection (CompareSnapshots) | ✅ Detects 4 drift categories |
 | `ingest` CLI subcommand | ✅ Reads files, writes snapshots |
 | `analyze` CLI subcommand | ✅ DSL queries against snapshot or fixture |
@@ -251,16 +314,16 @@ All weights are tunable via `ScoringConfig`. See [docs/scoring.md](docs/scoring.
 | GitHub Actions CI | ✅ Build, vet, race detector, goreleaser check |
 | Integration test (full pipeline) | ✅ `test/integration/pipeline_test.go` |
 
-### Stubbed / thin implementations
+### Experimental / partial packages
 
 | Package | Status |
 |---------|--------|
-| `pkg/normalize` | Stub — dedup and canonicalization not yet implemented |
-| `pkg/policy` | Stub — policy rule evaluation not yet implemented |
-| `pkg/providers` | Stub — LLM provider abstraction not yet wired |
-| `pkg/evidence` | Types and helpers only; no ingestion pipeline feeds it |
-| `pkg/telemetry` | Requirement mapper only; no live telemetry collection |
-| Detection (Sigma/KQL/SPL) | Generic templates; not path-specific yet |
+| `pkg/policy` | Experimental — evaluator shell exists, but the rule set and CLI integration are incomplete |
+| `pkg/evidence` | Partial — data structures and store helpers exist, but ingestion pipelines do not populate them yet |
+| `pkg/telemetry` | Partial — requirement mapping is implemented, but there is no live telemetry collection or validation pipeline |
+| Detection (Sigma/KQL/SPL) | Partial — generated from generic templates with path context; not yet deeply specialized per edge sequence |
+
+The core product path today is: `ingest` → `graph/query/scoring` → `controls` → `reporting` / `snapshot` / `drift`.
 
 ### Verified demo workflow
 
@@ -273,10 +336,14 @@ All weights are tunable via `ScoringConfig`. See [docs/scoring.md](docs/scoring.
 ./pathcollapse analyze --graph /tmp/snapshot.json \
   --query "FIND PATHS FROM user:alice TO privilege:tier0 LIMIT 5"
 
-# Compute minimal breakpoints
+# Compute minimal breakpoints (calibrated confidence enabled by default)
 ./pathcollapse breakpoints --graph /tmp/snapshot.json --top 5
 
-# Generate a full markdown report
+# Same run, but with calibrated confidence disabled (restores the legacy
+# static 0.85 value on every recommendation — useful for A/B comparisons)
+./pathcollapse breakpoints --graph /tmp/snapshot.json --top 5 --confidence off
+
+# Generate a full markdown report with confidence summary + driver lines
 ./pathcollapse report --graph /tmp/snapshot.json --format markdown --top 5
 ```
 

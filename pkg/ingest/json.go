@@ -20,14 +20,14 @@ type jsonNode struct {
 
 // jsonEdge is the wire format for an edge in the generic JSON schema.
 type jsonEdge struct {
-	ID             string  `json:"id"`
-	Type           string  `json:"type"`
-	Source         string  `json:"source"`
-	Target         string  `json:"target"`
-	Confidence     float64 `json:"confidence"`
-	Exploitability float64 `json:"exploitability"`
-	Detectability  float64 `json:"detectability"`
-	BlastRadius    float64 `json:"blast_radius"`
+	ID             string   `json:"id"`
+	Type           string   `json:"type"`
+	Source         string   `json:"source"`
+	Target         string   `json:"target"`
+	Confidence     *float64 `json:"confidence"`
+	Exploitability *float64 `json:"exploitability"`
+	Detectability  *float64 `json:"detectability"`
+	BlastRadius    *float64 `json:"blast_radius"`
 }
 
 type jsonPayload struct {
@@ -70,17 +70,17 @@ func (a *JSONAdapter) Ingest(r io.Reader) (*Result, error) {
 			continue
 		}
 		e := model.NewEdge(je.ID, model.EdgeType(je.Type), je.Source, je.Target)
-		if je.Confidence > 0 {
-			e.Confidence = je.Confidence
+		if je.Confidence != nil {
+			e.Confidence = *je.Confidence
 		}
-		if je.Exploitability > 0 {
-			e.Exploitability = je.Exploitability
+		if je.Exploitability != nil {
+			e.Exploitability = *je.Exploitability
 		}
-		if je.Detectability > 0 {
-			e.Detectability = je.Detectability
+		if je.Detectability != nil {
+			e.Detectability = *je.Detectability
 		}
-		if je.BlastRadius > 0 {
-			e.BlastRadius = je.BlastRadius
+		if je.BlastRadius != nil {
+			e.BlastRadius = *je.BlastRadius
 		}
 		res.Edges = append(res.Edges, e)
 	}
@@ -95,8 +95,8 @@ type BloodHoundAdapter struct{}
 func (a *BloodHoundAdapter) Name() string { return "bloodhound-json" }
 
 type bhPayload struct {
-	Meta  bhMeta    `json:"meta"`
-	Users []bhUser  `json:"data"`
+	Meta  bhMeta   `json:"meta"`
+	Users []bhUser `json:"data"`
 }
 
 type bhMeta struct {
@@ -106,14 +106,14 @@ type bhMeta struct {
 }
 
 type bhUser struct {
-	Properties bhProperties `json:"Properties"`
-	ObjectIdentifier string  `json:"ObjectIdentifier"`
-	Members     []bhMember  `json:"Members"`
-	PrimaryGroupSid string   `json:"PrimaryGroupSid"`
+	Properties       bhProperties `json:"Properties"`
+	ObjectIdentifier string       `json:"ObjectIdentifier"`
+	Members          []bhMember   `json:"Members"`
+	PrimaryGroupSid  string       `json:"PrimaryGroupSid"`
 }
 
 type bhMember struct {
-	MemberType string `json:"MemberType"`
+	MemberType       string `json:"MemberType"`
 	ObjectIdentifier string `json:"ObjectIdentifier"`
 }
 

@@ -6,6 +6,7 @@ package controls
 import (
 	"fmt"
 
+	"github.com/karunapuram/pathcollapse/pkg/confidence"
 	"github.com/karunapuram/pathcollapse/pkg/graph"
 	"github.com/karunapuram/pathcollapse/pkg/model"
 	"github.com/karunapuram/pathcollapse/pkg/scoring"
@@ -16,8 +17,8 @@ type ControlChange struct {
 	Type        ChangeType `json:"type"`
 	Description string     `json:"description"`
 	// Edge or node targeted by the change.
-	EdgeID  string `json:"edge_id,omitempty"`
-	NodeID  string `json:"node_id,omitempty"`
+	EdgeID string `json:"edge_id,omitempty"`
+	NodeID string `json:"node_id,omitempty"`
 }
 
 // ChangeType classifies the kind of defensive change.
@@ -32,12 +33,21 @@ const (
 
 // ControlRecommendation is a single recommended control change with its impact.
 type ControlRecommendation struct {
-	Change        ControlChange    `json:"change"`
-	PathsRemoved  int              `json:"paths_removed"`
-	RiskReduction float64          `json:"risk_reduction"`
-	Difficulty    Difficulty       `json:"difficulty"`
-	Confidence    float64          `json:"confidence"`
-	AffectedPaths []graph.Path     `json:"-"`
+	Change        ControlChange `json:"change"`
+	PathsRemoved  int           `json:"paths_removed"`
+	RiskReduction float64       `json:"risk_reduction"`
+	Difficulty    Difficulty    `json:"difficulty"`
+	Confidence    float64       `json:"confidence"`
+
+	// Breakdown is the per-factor decomposition from pkg/confidence.
+	// Nil when OptimizerConfig.Confidence is unset (legacy 0.85 mode).
+	Breakdown *confidence.Breakdown `json:"confidence_breakdown,omitempty"`
+
+	// Regime reports how much labeled data the active calibrator was fit
+	// against. Empty string when Breakdown is nil.
+	Regime confidence.Regime `json:"confidence_regime,omitempty"`
+
+	AffectedPaths []graph.Path `json:"-"`
 }
 
 // Difficulty rates the operational effort to apply a control.
@@ -55,15 +65,46 @@ type OptimizerConfig struct {
 	MaxRecommendations int
 	// MinPathsToQualify is the minimum paths a control must remove to appear.
 	MinPathsToQualify int
+
+	// Confidence, when non-nil, enables the five-factor calibrated
+	// confidence algorithm (see pkg/confidence and docs/confidence.md).
+	// When nil, recommendations fall back to the legacy static 0.85 value
+	// for backward compatibility.
+	Confidence *ConfidenceOptions
 }
 
-// DefaultOptimizerConfig returns sensible defaults.
+// ConfidenceOptions configures confidence scoring inside the optimizer.
+// All fields are optional; zero values yield cold-start defaults.
+type ConfidenceOptions struct {
+	// ScoringCfg is reused for residual-path risk scoring in R(e, G).
+	// Zero value uses scoring.DefaultConfig().
+	ScoringCfg scoring.ScoringConfig
+
+	// Snapshots supplies edge-presence data for T(e). Nil is permitted
+	// and yields the cold-start 0.5 presence prior.
+	Snapshots confidence.SnapshotProvider
+
+	// Calibrator maps raw scores to calibrated probabilities. Nil yields
+	// the identity map (cold-start regime).
+	Calibrator confidence.Calibrator
+
+	// Config holds aggregation weights and factor parameters. Zero value
+	// uses confidence.DefaultConfig().
+	Config confidence.Config
+}
+
+// DefaultOptimizerConfig returns sensible defaults. Confidence remains
+// disabled — callers that want calibrated scores must set it explicitly.
 func DefaultOptimizerConfig() OptimizerConfig {
 	return OptimizerConfig{
 		MaxRecommendations: 20,
 		MinPathsToQualify:  1,
 	}
 }
+
+// LegacyConfidence is the hardcoded value used when OptimizerConfig.Confidence
+// is nil. Retained as a named constant so tests and reports can reference it.
+const LegacyConfidence = 0.85
 
 // Optimize runs the greedy set-cover algorithm over scored paths and returns
 // a ranked list of control recommendations.
@@ -97,6 +138,17 @@ func Optimize(scored []scoring.ScoredPath, g *graph.Graph, cfg OptimizerConfig) 
 			}
 			c.pathIdxs = append(c.pathIdxs, i)
 			pathEdges[i] = append(pathEdges[i], e.ID)
+		}
+	}
+
+	// Build a CandidateIndex for K(c) if confidence is enabled. Each
+	// candidate's pathIdxs is naturally sorted ascending because i advances
+	// monotonically in the scan above.
+	var candIdx *confidence.CandidateIndex
+	if cfg.Confidence != nil {
+		candIdx = confidence.NewCandidateIndex()
+		for edgeID, c := range candidates {
+			candIdx.Register(edgeID, c.pathIdxs)
 		}
 	}
 
@@ -148,7 +200,7 @@ func Optimize(scored []scoring.ScoredPath, g *graph.Graph, cfg OptimizerConfig) 
 			PathsRemoved:  bestCount,
 			RiskReduction: riskReduced,
 			Difficulty:    difficultyForChange(best.change.Type),
-			Confidence:    0.85,
+			Confidence:    LegacyConfidence, // overwritten below if confidence is enabled
 			AffectedPaths: affectedPaths,
 		})
 
@@ -156,7 +208,64 @@ func Optimize(scored []scoring.ScoredPath, g *graph.Graph, cfg OptimizerConfig) 
 		delete(counts, bestKey)
 	}
 
+	if cfg.Confidence != nil {
+		scoreConfidence(recommendations, g, candIdx, cfg.Confidence)
+	}
+
 	return recommendations
+}
+
+// scoreConfidence annotates each recommendation with its calibrated
+// confidence and per-factor breakdown. Edge-not-found or scoring errors
+// leave the legacy LegacyConfidence value intact so the optimizer output
+// stays well-formed even if one rec fails.
+func scoreConfidence(
+	recs []ControlRecommendation,
+	g *graph.Graph,
+	candIdx *confidence.CandidateIndex,
+	opts *ConfidenceOptions,
+) {
+	scoringCfg := opts.ScoringCfg
+	if scoringCfg == (scoring.ScoringConfig{}) {
+		scoringCfg = scoring.DefaultConfig()
+	}
+	confCfg := opts.Config
+	if confCfg == (confidence.Config{}) {
+		confCfg = confidence.DefaultConfig()
+	}
+	deps := confidence.Deps{
+		Graph:      g,
+		ScoringCfg: scoringCfg,
+		Snapshots:  opts.Snapshots,
+		Calibrator: opts.Calibrator,
+	}
+
+	for i := range recs {
+		edgeID := recs[i].Change.EdgeID
+		if edgeID == "" {
+			continue
+		}
+		edge := g.GetEdge(edgeID)
+		if edge == nil {
+			continue
+		}
+		final, b, regime, err := confidence.ScoreEdge(
+			confidence.ScoreEdgeInput{
+				Edge:           edge,
+				AffectedPaths:  recs[i].AffectedPaths,
+				CandidateIndex: candIdx,
+			},
+			deps,
+			confCfg,
+		)
+		if err != nil {
+			continue
+		}
+		recs[i].Confidence = final
+		bCopy := b
+		recs[i].Breakdown = &bCopy
+		recs[i].Regime = regime
+	}
 }
 
 func changeForEdge(e *model.Edge, g *graph.Graph) ControlChange {

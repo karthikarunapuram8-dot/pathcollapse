@@ -12,9 +12,9 @@ import (
 // NewDiffCmd returns the diff subcommand.
 func NewDiffCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "diff <old-snapshot.json> <new-snapshot.json>",
-		Short: "Compare two graph snapshots and report drift",
-		Args:  cobra.ExactArgs(2),
+		Use:     "diff <old-snapshot.json> <new-snapshot.json>",
+		Short:   "Compare two graph snapshots and report drift",
+		Args:    cobra.ExactArgs(2),
 		Example: `  pathcollapse diff snapshot-jan.json snapshot-feb.json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			oldG, err := LoadGraphFromFile(args[0])

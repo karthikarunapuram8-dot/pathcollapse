@@ -2,6 +2,7 @@ package query
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -86,6 +87,9 @@ func (ex *Executor) execFindPaths(stmt *Statement) (*Result, error) {
 	}
 
 	scored := scoring.RankPaths(allPaths, ex.g, ex.cfg)
+	if err := applyOrderBy(scored, stmt.OrderBy, stmt.OrderDesc); err != nil {
+		return nil, err
+	}
 	if stmt.Limit > 0 && len(scored) > stmt.Limit {
 		scored = scored[:stmt.Limit]
 	}
@@ -279,4 +283,48 @@ func evalPredicate(e *model.Edge, pred Predicate) bool {
 	default:
 		return true
 	}
+}
+
+func applyOrderBy(scored []scoring.ScoredPath, field string, desc bool) error {
+	if field == "" {
+		return nil
+	}
+	if len(scored) == 0 {
+		return nil
+	}
+
+	valueFor := func(sp scoring.ScoredPath) (float64, error) {
+		switch strings.ToLower(field) {
+		case "risk":
+			return sp.Score, nil
+		case "confidence":
+			return sp.Breakdown.Confidence, nil
+		case "exploitability":
+			return sp.Breakdown.Exploitability, nil
+		case "detectability":
+			return sp.Breakdown.Detectability, nil
+		case "blast_radius":
+			return sp.Breakdown.BlastRadius, nil
+		default:
+			return 0, fmt.Errorf("executor: unsupported ORDER BY field %q", field)
+		}
+	}
+
+	if _, err := valueFor(scored[0]); err != nil {
+		return err
+	}
+
+	sort.SliceStable(scored, func(i, j int) bool {
+		vi, _ := valueFor(scored[i])
+		vj, _ := valueFor(scored[j])
+		if vi == vj {
+			return scored[i].Path.Len() < scored[j].Path.Len()
+		}
+		if desc {
+			return vi > vj
+		}
+		return vi < vj
+	})
+
+	return nil
 }

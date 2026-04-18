@@ -145,6 +145,47 @@ func buildTestGraph(t *testing.T) *graph.Graph {
 	return g
 }
 
+func buildOrderByGraph(t *testing.T) *graph.Graph {
+	t.Helper()
+	g := graph.New()
+
+	nodes := []*model.Node{
+		model.NewNode("alice", model.NodeUser, "alice"),
+		model.NewNode("high-path", model.NodeGroup, "high-path"),
+		model.NewNode("low-path", model.NodeGroup, "low-path"),
+		model.NewNode("dc01", model.NodeComputer, "DC01"),
+	}
+	nodes[len(nodes)-1].Tags = []string{model.TagTier0}
+
+	for _, n := range nodes {
+		if err := g.AddNode(n); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	high1 := model.NewEdge("high-1", model.EdgeMemberOf, "alice", "high-path")
+	high1.Confidence = 0.9
+	high1.Exploitability = 0.9
+	high2 := model.NewEdge("high-2", model.EdgeAdminTo, "high-path", "dc01")
+	high2.Confidence = 0.9
+	high2.Exploitability = 0.9
+
+	low1 := model.NewEdge("low-1", model.EdgeMemberOf, "alice", "low-path")
+	low1.Confidence = 0.2
+	low1.Exploitability = 0.2
+	low2 := model.NewEdge("low-2", model.EdgeAdminTo, "low-path", "dc01")
+	low2.Confidence = 0.2
+	low2.Exploitability = 0.2
+
+	for _, e := range []*model.Edge{high1, high2, low1, low2} {
+		if err := g.AddEdge(e); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return g
+}
+
 func TestExecutor_FindPaths(t *testing.T) {
 	g := buildTestGraph(t)
 	ex := NewExecutor(g, scoring.DefaultConfig())
@@ -172,5 +213,29 @@ func TestExecutor_ShowDrift(t *testing.T) {
 	}
 	if res.Message == "" {
 		t.Fatal("expected non-empty message for SHOW DRIFT")
+	}
+}
+
+func TestExecutor_FindPaths_OrderByConfidenceAsc(t *testing.T) {
+	g := buildOrderByGraph(t)
+	ex := NewExecutor(g, scoring.DefaultConfig())
+
+	stmt, err := ParseQuery(`FIND PATHS FROM user:alice TO privilege:tier0 ORDER BY confidence ASC`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := ex.Execute(stmt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.ScoredPaths) != 2 {
+		t.Fatalf("expected 2 scored paths, got %d", len(res.ScoredPaths))
+	}
+	if got := res.ScoredPaths[0].Breakdown.Confidence; got != 0.2 {
+		t.Fatalf("expected lowest-confidence path first, got %.2f", got)
+	}
+	if got := res.ScoredPaths[1].Breakdown.Confidence; got != 0.9 {
+		t.Fatalf("expected highest-confidence path second, got %.2f", got)
 	}
 }

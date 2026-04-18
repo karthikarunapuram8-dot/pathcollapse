@@ -1,0 +1,16 @@
+INFO: using built-in fixture (pass --graph <snapshot.json> to use ingested data)
+INFO: confidence: no snapshot history at C:\Users\RDPUser\.pathcollapse\snapshots.db — T(e) using cold-start prior (see docs/confidence.md §4.4)
+Top 3 control breakpoints (15 paths analysed, ordered by paths collapsed):
+
+1. Remove can_write_acl_of relationship from Account Operators to Domain Admins
+   type=remove_edge           paths-collapsed=6    risk-reduction=5.442  difficulty=medium  confidence=100%
+   drivers: E=0.36 R=1.00 S=0.72 T=0.30 K=1.00  regime=cold_start
+
+2. Remove alice from group Domain Admins
+   type=remove_member         paths-collapsed=4    risk-reduction=3.755  difficulty=low     confidence=100%
+   drivers: E=0.41 R=1.00 S=0.48 T=0.30 K=1.00  regime=cold_start
+
+3. Disable delegation/sync from svc-sql to DC01
+   type=modify_node           paths-collapsed=1    risk-reduction=0.895  difficulty=high    confidence=100%
+   drivers: E=0.39 R=1.00 S=0.60 T=0.30 K=1.00  regime=cold_start
+

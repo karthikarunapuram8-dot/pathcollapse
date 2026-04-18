@@ -28,10 +28,10 @@ pathcollapse ingest --input groups.csv --type csv_groups
 # Ingest local admin relationships
 pathcollapse ingest --input local-admins.csv --type csv_local_admin
 
-# Generate a markdown report
+# Generate a markdown report with detections and telemetry requirements
 pathcollapse report --format markdown --top 20 --output security-report.md
 
-# Generate JSON for downstream tooling
+# Generate JSON for downstream tooling and SOAR ingestion
 pathcollapse report --format json --output report.json
 ```
 
@@ -87,7 +87,27 @@ pathcollapse ingest --input facts.yaml --type yaml
 pathcollapse analyze --query "FIND PATHS FROM service_account:svc-reporting TO privilege:tier0"
 ```
 
-## Workflow 5: Generating Detection Content
+## Workflow 5: Detection-Focused Reporting
+
+```bash
+# Build a rich HTML report for responders and detection engineers
+pathcollapse report --graph snapshot.json --format html --top 10 --output detections.html
+
+# Build JSON for downstream enrichment pipelines
+pathcollapse report --graph snapshot.json --format json --top 10 --output detections.json
+
+# Turn off calibrated recommendation confidence for side-by-side comparison
+pathcollapse report --graph snapshot.json --format markdown --top 10 --confidence off
+```
+
+The resulting report includes:
+- ATT&CK techniques per high-risk path
+- Sigma, KQL, and SPL content ready for tuning
+- Required log sources and event IDs
+- Visibility gaps that may block reliable detection
+- Optional calibrated recommendation confidence with factor-level drivers
+
+## Workflow 6: Generating Detection Content Programmatically
 
 Use the detection package programmatically:
 

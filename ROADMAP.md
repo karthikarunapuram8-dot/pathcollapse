@@ -11,6 +11,7 @@
 - [x] Drift detection across graph snapshots
 - [x] Reporting: Markdown, JSON, HTML
 - [x] SQLite snapshot persistence (`snapshot save/list/diff/prune`)
+- [x] Calibrated recommendation confidence with per-factor breakdowns and snapshot-backed temporal stability
 - [x] GitHub Actions CI + GoReleaser cross-platform binaries
 
 ## v0.2 — Live Data & Integrations
@@ -39,6 +40,7 @@
 
 - [ ] Stable CLI API (no breaking flag changes)
 - [ ] Comprehensive integration test suite against real AD lab
+- [ ] Shadow-mode confidence data collection + learned beta refit
 - [ ] Docker / OCI image on GHCR
 - [ ] Homebrew tap
 - [ ] Operator documentation and runbooks

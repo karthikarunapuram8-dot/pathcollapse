@@ -64,7 +64,7 @@ External Data Sources
   │
   └──► pkg/reporting
          Reporter.Render(w, Report)
-         Formats: Markdown (executive + engineer), JSON
+         Formats: Markdown / JSON / HTML with path-level detections and telemetry
 ```
 
 ## Graph Model

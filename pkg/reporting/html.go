@@ -65,6 +65,13 @@ tr:hover td{background:#fafafa}
 .section-empty{padding:20px 0;color:#a0aec0;font-style:italic;text-align:center}
 .exec-text{font-size:1rem;color:#4a5568;margin-bottom:16px}
 .exec-callout{background:#ebf8ff;border-left:4px solid #4299e1;border-radius:0 8px 8px 0;padding:12px 16px;margin-top:16px;font-size:.9rem;color:#2c5282}
+.stack{display:grid;gap:18px}
+.path-card{border:1px solid #e2e8f0;border-radius:10px;padding:18px;background:#f8fafc}
+.path-card h3{font-size:1rem;margin-bottom:8px;color:#1a202c}
+.meta-row{font-size:.88rem;color:#4a5568;margin-bottom:10px}
+.detail-list{margin:0 0 12px 18px;color:#2d3748}
+.detail-list li{margin-bottom:6px}
+pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;overflow:auto;font-size:.8rem;line-height:1.5;margin-top:10px}
 .drift-stat{display:inline-block;margin-right:24px;font-size:.9rem}
 .drift-stat strong{font-weight:700}
 footer{text-align:center;font-size:.8rem;color:#a0aec0;margin:32px 0;padding-bottom:24px}
@@ -101,6 +108,25 @@ footer{text-align:center;font-size:.8rem;color:#a0aec0;margin:32px 0;padding-bot
 	}
 	sb.WriteString("  </div>\n</div>\n\n")
 
+	// ── Confidence Summary ───────────────────────────────────────────────────
+	if rep.Confidence.HasConfidence {
+		c := rep.Confidence
+		sb.WriteString("<div class=\"card\">\n  <div class=\"card-header\"><h2>Recommendation Confidence</h2></div>\n  <div class=\"card-body\">\n    <div class=\"kpi-grid\">\n")
+		fmt.Fprintf(sb,
+			"      <div class=\"kpi\"><div class=\"label\">Scored</div><div class=\"value\">%d</div><div class=\"sub\">recommendations</div></div>\n"+
+				"      <div class=\"kpi\"><div class=\"label\">Average</div><div class=\"value\">%.0f%%</div><div class=\"sub\">across scored recs</div></div>\n"+
+				"      <div class=\"kpi\"><div class=\"label\">Highest</div><div class=\"value\">%.0f%%</div><div class=\"sub\">most confident rec</div></div>\n"+
+				"      <div class=\"kpi\"><div class=\"label\">Lowest</div><div class=\"value\">%.0f%%</div><div class=\"sub\">least confident rec</div></div>\n",
+			c.Count, c.Average*100, c.Highest*100, c.Lowest*100)
+		sb.WriteString("    </div>\n")
+		fmt.Fprintf(sb,
+			"    <p style=\"margin-top:12px;font-size:.88rem;color:#4a5568\">Calibration regime: "+
+				"<strong>%d</strong> cold-start &middot; <strong>%d</strong> partial &middot; <strong>%d</strong> calibrated. "+
+				"See <code>docs/confidence.md</code> for the scoring algorithm.</p>\n",
+			c.ColdStart, c.Partial, c.Calibrated)
+		sb.WriteString("  </div>\n</div>\n\n")
+	}
+
 	// ── Top Risk Paths ───────────────────────────────────────────────────────
 	sb.WriteString("<div class=\"card\">\n  <div class=\"card-header\"><h2>Top Risk Paths</h2></div>\n  <div class=\"card-body\">\n")
 	if len(rep.TopPaths) == 0 {
@@ -123,7 +149,7 @@ footer{text-align:center;font-size:.8rem;color:#a0aec0;margin:32px 0;padding-bot
 	if len(rep.Recommendations) == 0 {
 		sb.WriteString("    <p class=\"section-empty\">No control recommendations generated.</p>\n")
 	} else {
-		sb.WriteString("    <table>\n      <thead><tr><th>#</th><th>Action</th><th>Type</th><th>Paths Collapsed</th><th>Risk Reduction</th><th>Difficulty</th><th>Confidence</th></tr></thead>\n      <tbody>\n")
+		sb.WriteString("    <table>\n      <thead><tr><th>#</th><th>Action</th><th>Type</th><th>Paths Collapsed</th><th>Risk Reduction</th><th>Difficulty</th><th>Confidence</th><th>Why</th></tr></thead>\n      <tbody>\n")
 		for i, rec := range rep.Recommendations {
 			diffClass := "pill-low"
 			switch rec.Difficulty {
@@ -132,12 +158,42 @@ footer{text-align:center;font-size:.8rem;color:#a0aec0;margin:32px 0;padding-bot
 			case controls.DifficultyHigh:
 				diffClass = "pill-high"
 			}
-			fmt.Fprintf(sb, "        <tr><td>%d</td><td>%s</td><td><code>%s</code></td><td>%d</td><td>%.3f</td><td><span class=\"pill %s\">%s</span></td><td>%.0f%%</td></tr>\n",
+			why := htmlEsc(joinDrivers(TopDrivers(rec.Breakdown)))
+			if why == "" {
+				why = "<span style=\"color:#a0aec0\">&mdash;</span>"
+			}
+			fmt.Fprintf(sb, "        <tr><td>%d</td><td>%s</td><td><code>%s</code></td><td>%d</td><td>%.3f</td><td><span class=\"pill %s\">%s</span></td><td>%.0f%%</td><td style=\"font-size:.82rem;color:#4a5568\">%s</td></tr>\n",
 				i+1, htmlEsc(rec.Change.Description), rec.Change.Type,
 				rec.PathsRemoved, rec.RiskReduction,
-				diffClass, rec.Difficulty, rec.Confidence*100)
+				diffClass, rec.Difficulty, rec.Confidence*100, why)
 		}
 		sb.WriteString("      </tbody>\n    </table>\n")
+	}
+	sb.WriteString("  </div>\n</div>\n\n")
+
+	// ── Detection & Telemetry ────────────────────────────────────────────────
+	sb.WriteString("<div class=\"card\">\n  <div class=\"card-header\"><h2>Detection &amp; Telemetry</h2></div>\n  <div class=\"card-body\">\n")
+	if len(rep.PathDetails) == 0 {
+		sb.WriteString("    <p class=\"section-empty\">No path detections to display.</p>\n")
+	} else {
+		sb.WriteString("    <div class=\"stack\">\n")
+		for _, detail := range rep.PathDetails {
+			fmt.Fprintf(sb, "      <div class=\"path-card\">\n        <h3>Path %d: %s &rarr; %s</h3>\n        <div class=\"meta-row\">Risk %.3f &middot; %d hops</div>\n",
+				detail.Rank, htmlEsc(detail.Source), htmlEsc(detail.Target), detail.Score, detail.HopCount)
+			sb.WriteString("        <ul class=\"detail-list\">\n")
+			fmt.Fprintf(sb, "          <li><strong>ATT&amp;CK:</strong> %s</li>\n", htmlEsc(joinTechniques(detail.Detection.ATTACKTechniques)))
+			fmt.Fprintf(sb, "          <li><strong>Log sources:</strong> %s</li>\n", htmlEsc(strings.Join(detail.Detection.LogSources, ", ")))
+			fmt.Fprintf(sb, "          <li><strong>Telemetry requirements:</strong> %s</li>\n", htmlEsc(joinTelemetry(detail.Telemetry)))
+			if len(detail.Detection.MissingTelemetry) > 0 {
+				fmt.Fprintf(sb, "          <li><strong>Gaps:</strong> %s</li>\n", htmlEsc(strings.Join(detail.Detection.MissingTelemetry, ", ")))
+			}
+			sb.WriteString("        </ul>\n")
+			fmt.Fprintf(sb, "        <pre>%s</pre>\n", htmlEsc(detail.Detection.SigmaRule))
+			fmt.Fprintf(sb, "        <pre>%s</pre>\n", htmlEsc(detail.Detection.KQLQuery))
+			fmt.Fprintf(sb, "        <pre>%s</pre>\n", htmlEsc(detail.Detection.SPLQuery))
+			sb.WriteString("      </div>\n")
+		}
+		sb.WriteString("    </div>\n")
 	}
 	sb.WriteString("  </div>\n</div>\n\n")
 

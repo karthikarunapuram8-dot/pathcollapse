@@ -3,6 +3,7 @@ package controls
 import (
 	"testing"
 
+	"github.com/karunapuram/pathcollapse/pkg/confidence"
 	"github.com/karunapuram/pathcollapse/pkg/graph"
 	"github.com/karunapuram/pathcollapse/pkg/model"
 	"github.com/karunapuram/pathcollapse/pkg/scoring"
@@ -101,5 +102,79 @@ func TestDifficultyForChange(t *testing.T) {
 		if got := difficultyForChange(tc.ct); got != tc.want {
 			t.Errorf("difficultyForChange(%v) = %v, want %v", tc.ct, got, tc.want)
 		}
+	}
+}
+
+// ── Confidence integration ─────────────────────────────────────────────────
+
+func TestOptimize_LegacyConfidenceWhenDisabled(t *testing.T) {
+	scored, g := buildScoredPaths(t)
+	recs := Optimize(scored, g, DefaultOptimizerConfig())
+	if len(recs) == 0 {
+		t.Fatal("expected recommendations")
+	}
+	for i, r := range recs {
+		if r.Confidence != LegacyConfidence {
+			t.Errorf("rec[%d]: expected legacy %v, got %v", i, LegacyConfidence, r.Confidence)
+		}
+		if r.Breakdown != nil {
+			t.Errorf("rec[%d]: Breakdown must be nil when confidence disabled", i)
+		}
+		if r.Regime != "" {
+			t.Errorf("rec[%d]: Regime must be empty when confidence disabled, got %q", i, r.Regime)
+		}
+	}
+}
+
+func TestOptimize_ConfidenceEnabledReplacesLegacyConstant(t *testing.T) {
+	scored, g := buildScoredPaths(t)
+
+	cfg := DefaultOptimizerConfig()
+	cfg.Confidence = &ConfidenceOptions{
+		ScoringCfg: scoring.DefaultConfig(),
+		Config:     confidence.DefaultConfig(),
+	}
+
+	recs := Optimize(scored, g, cfg)
+	if len(recs) == 0 {
+		t.Fatal("expected recommendations")
+	}
+
+	anyBreakdown := false
+	anyDiverged := false
+	for _, r := range recs {
+		if r.Breakdown != nil {
+			anyBreakdown = true
+			// Every factor must land in [0, 1].
+			b := r.Breakdown
+			for name, v := range map[string]float64{
+				"Evidence":              b.Evidence,
+				"Robustness":            b.Robustness,
+				"Safety":                b.Safety,
+				"TemporalStability":     b.TemporalStability,
+				"CoverageConcentration": b.CoverageConcentration,
+				"Raw":                   b.Raw,
+				"Final":                 b.Final,
+			} {
+				if v < 0 || v > 1 {
+					t.Errorf("rec breakdown %s out of [0,1]: %v", name, v)
+				}
+			}
+			if r.Confidence != b.Final {
+				t.Errorf("rec.Confidence (%v) != Breakdown.Final (%v)", r.Confidence, b.Final)
+			}
+			if r.Regime != confidence.RegimeColdStart {
+				t.Errorf("expected cold-start regime, got %q", r.Regime)
+			}
+		}
+		if r.Confidence != LegacyConfidence {
+			anyDiverged = true
+		}
+	}
+	if !anyBreakdown {
+		t.Fatal("expected at least one rec with Breakdown populated")
+	}
+	if !anyDiverged {
+		t.Fatal("expected at least one rec to diverge from LegacyConfidence")
 	}
 }

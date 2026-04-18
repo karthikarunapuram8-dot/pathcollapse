@@ -25,14 +25,14 @@ type yamlNode struct {
 }
 
 type yamlEdge struct {
-	ID             string  `yaml:"id"`
-	Type           string  `yaml:"type"`
-	Source         string  `yaml:"source"`
-	Target         string  `yaml:"target"`
-	Confidence     float64 `yaml:"confidence"`
-	Exploitability float64 `yaml:"exploitability"`
-	Detectability  float64 `yaml:"detectability"`
-	BlastRadius    float64 `yaml:"blast_radius"`
+	ID             string   `yaml:"id"`
+	Type           string   `yaml:"type"`
+	Source         string   `yaml:"source"`
+	Target         string   `yaml:"target"`
+	Confidence     *float64 `yaml:"confidence"`
+	Exploitability *float64 `yaml:"exploitability"`
+	Detectability  *float64 `yaml:"detectability"`
+	BlastRadius    *float64 `yaml:"blast_radius"`
 }
 
 // YAMLAdapter parses analyst-provided YAML fact files.
@@ -75,17 +75,17 @@ func (a *YAMLAdapter) Ingest(r io.Reader) (*Result, error) {
 			id = fmt.Sprintf("yaml-%s-%s", ye.Source, ye.Target)
 		}
 		e := model.NewEdge(id, model.EdgeType(ye.Type), ye.Source, ye.Target)
-		if ye.Confidence > 0 {
-			e.Confidence = ye.Confidence
+		if ye.Confidence != nil {
+			e.Confidence = *ye.Confidence
 		}
-		if ye.Exploitability > 0 {
-			e.Exploitability = ye.Exploitability
+		if ye.Exploitability != nil {
+			e.Exploitability = *ye.Exploitability
 		}
-		if ye.Detectability > 0 {
-			e.Detectability = ye.Detectability
+		if ye.Detectability != nil {
+			e.Detectability = *ye.Detectability
 		}
-		if ye.BlastRadius > 0 {
-			e.BlastRadius = ye.BlastRadius
+		if ye.BlastRadius != nil {
+			e.BlastRadius = *ye.BlastRadius
 		}
 		res.Edges = append(res.Edges, e)
 	}
