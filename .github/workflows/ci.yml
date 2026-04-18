@@ -58,12 +58,12 @@ jobs:
           cache: true
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        # v7 is the v2-compatible action release. v6 targets v1.x which
+        # was built with Go ≤ 1.24 and refuses to load a go.mod targeting
+        # Go 1.25.
+        uses: golangci/golangci-lint-action@v7
         with:
-          # `latest` resolved to v1.64.8 (built with Go 1.24) which refuses
-          # to load a go.mod targeting Go 1.25. Pin to a version built with
-          # Go 1.25 or later. Bump when the tool ships newer major versions.
-          version: v1.65.0
+          version: v2.11.4
           args: --timeout=5m
 
   goreleaser-check:
