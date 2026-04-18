@@ -27,15 +27,18 @@ func buildTestReport(t *testing.T) (*Report, *graph.Graph) {
 	paths := g.FindPaths("alice", "dc", graph.DefaultPathOptions())
 	cfg := scoring.DefaultConfig()
 	scored := scoring.RankPaths(paths, g, cfg)
+
 	recs := controls.Optimize(scored, g, controls.DefaultOptimizerConfig())
+
 	rep := BuildReport(g, scored, recs)
 	return rep, g
 }
 
 func TestRenderMarkdown(t *testing.T) {
 	rep, _ := buildTestReport(t)
+	r := New(FormatMarkdown)
 	var buf bytes.Buffer
-	if err := New(FormatMarkdown).Render(&buf, rep); err != nil {
+	if err := r.Render(&buf, rep); err != nil {
 		t.Fatal(err)
 	}
 	out := buf.String()
@@ -49,8 +52,9 @@ func TestRenderMarkdown(t *testing.T) {
 
 func TestRenderJSON(t *testing.T) {
 	rep, _ := buildTestReport(t)
+	r := New(FormatJSON)
 	var buf bytes.Buffer
-	if err := New(FormatJSON).Render(&buf, rep); err != nil {
+	if err := r.Render(&buf, rep); err != nil {
 		t.Fatal(err)
 	}
 	var out map[string]any
@@ -85,9 +89,13 @@ func TestBuildReport(t *testing.T) {
 	}
 }
 
+// TestRenderReproducibility verifies that rendering the same Report twice
+// produces byte-identical output (no timestamp churn, random map iteration, etc.).
 func TestRenderReproducibility(t *testing.T) {
 	rep, _ := buildTestReport(t)
+	// Pin GeneratedAt so the timestamp is deterministic across both renders.
 	rep.GeneratedAt = time.Date(2024, 1, 15, 12, 0, 0, 0, time.UTC)
+
 	render := func() []byte {
 		var buf bytes.Buffer
 		if err := New(FormatMarkdown).Render(&buf, rep); err != nil {
@@ -95,9 +103,10 @@ func TestRenderReproducibility(t *testing.T) {
 		}
 		return buf.Bytes()
 	}
+
 	first := render()
 	second := render()
 	if !bytes.Equal(first, second) {
-		t.Errorf("renders are not byte-equal")
+		t.Errorf("renders are not byte-equal:\n--- first ---\n%s\n--- second ---\n%s", first, second)
 	}
 }

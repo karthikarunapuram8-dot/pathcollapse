@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/karunapuram/pathcollapse/pkg/controls"
+	"github.com/karunapuram/pathcollapse/pkg/drift"
 	"github.com/karunapuram/pathcollapse/pkg/graph"
 	"github.com/karunapuram/pathcollapse/pkg/scoring"
 )
@@ -19,6 +20,7 @@ type Format string
 const (
 	FormatMarkdown Format = "markdown"
 	FormatJSON     Format = "json"
+	FormatHTML     Format = "html"
 )
 
 // Report bundles all analysis outputs for rendering.
@@ -28,6 +30,7 @@ type Report struct {
 	EdgeCount       int                              `json:"edge_count"`
 	TopPaths        []scoring.ScoredPath             `json:"top_paths"`
 	Recommendations []controls.ControlRecommendation `json:"recommendations"`
+	Drift           *drift.DriftReport               `json:"drift,omitempty"`
 }
 
 // Reporter renders reports to an io.Writer in the chosen format.
@@ -45,6 +48,8 @@ func (r *Reporter) Render(w io.Writer, rep *Report) error {
 	switch r.format {
 	case FormatJSON:
 		return r.renderJSON(w, rep)
+	case FormatHTML:
+		return r.renderHTML(w, rep)
 	default:
 		return r.renderMarkdown(w, rep)
 	}
@@ -136,3 +141,4 @@ func BuildReport(g *graph.Graph, topPaths []scoring.ScoredPath, recs []controls.
 		Recommendations: recs,
 	}
 }
+

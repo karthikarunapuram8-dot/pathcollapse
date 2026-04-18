@@ -3,11 +3,13 @@ package subcmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/karunapuram/pathcollapse/internal/testdata"
 	"github.com/karunapuram/pathcollapse/pkg/controls"
+	"github.com/karunapuram/pathcollapse/pkg/drift"
 	"github.com/karunapuram/pathcollapse/pkg/graph"
 	"github.com/karunapuram/pathcollapse/pkg/reporting"
 	"github.com/karunapuram/pathcollapse/pkg/scoring"
@@ -19,12 +21,14 @@ func NewReportCmd() *cobra.Command {
 	var top int
 	var outputFile string
 	var graphFile string
+	var baselineFile string
 
 	cmd := &cobra.Command{
 		Use:   "report",
 		Short: "Generate an analysis report",
 		Example: `  pathcollapse report --format markdown
-  pathcollapse report --graph /tmp/graph.json --format json --output report.json --top 20`,
+  pathcollapse report --graph /tmp/graph.json --format html --output report.html
+  pathcollapse report --graph snapshot.json --baseline baseline.json --format html --output drift-report.html`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var g *graph.Graph
 			var err error
@@ -49,6 +53,14 @@ func NewReportCmd() *cobra.Command {
 
 			rep := reporting.BuildReport(g, scored, recs)
 
+			if baselineFile != "" {
+				baseline, err := LoadGraphFromFile(baselineFile)
+				if err != nil {
+					return fmt.Errorf("load baseline: %w", err)
+				}
+				rep.Drift = drift.CompareSnapshots(baseline, g, time.Time{}, time.Time{})
+			}
+
 			var w = cmd.OutOrStdout()
 			if outputFile != "" {
 				f, err := os.Create(outputFile)
@@ -64,10 +76,11 @@ func NewReportCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&format, "format", "f", "markdown", "Output format: markdown, json")
+	cmd.Flags().StringVarP(&format, "format", "f", "markdown", "Output format: markdown, json, html")
 	cmd.Flags().IntVar(&top, "top", 10, "Number of top paths to include")
 	cmd.Flags().StringVarP(&outputFile, "output", "o", "", "Output file (default: stdout)")
 	cmd.Flags().StringVar(&graphFile, "graph", "", "Graph snapshot file written by 'ingest --output'")
+	cmd.Flags().StringVar(&baselineFile, "baseline", "", "Baseline snapshot for drift analysis (HTML only)")
 
 	return cmd
 }
