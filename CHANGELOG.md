@@ -5,6 +5,11 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 ## [Unreleased]
 
 ### Added
+- **Shadow-mode calibration harness** (closes [#9](https://github.com/karthikarunapuram8-dot/pathcollapse/issues/9))
+  - `--shadow-mode` flag on `breakpoints` appends one JSONL line per recommendation to `~/.pathcollapse/shadow.jsonl`, capturing the full five-factor breakdown and raw aggregated score. Display is hidden behind the legacy `0.85` so analyst decisions aren't biased by unvalidated scores during the collection period.
+  - `pathcollapse confidence refit` command reads the shadow log, extracts entries where `observed_collapsed` has been annotated, fits an isotonic-regression calibrator via Pool-Adjacent-Violators, and persists it to `~/.pathcollapse/calibrator.json`. Prints Brier score, Brier baseline (vs constant `0.85`), improvement percentage, Expected Calibration Error (ECE), regime, and per-decile reliability buckets.
+  - Subsequent `pathcollapse breakpoints --confidence on` runs auto-load the saved calibrator via `LoadCalibrator`, moving from the identity calibrator (cold-start) to real calibrated final scores.
+  - Demo GIF at `docs/assets/demo.gif`, regenerable via `vhs docs/assets/demo.tape`, showing the end-to-end ingest → analyze → breakpoints → HTML report flow.
 - `--quiet` flag on `breakpoints` and `report` to suppress informational stderr notes such as built-in-fixture and cold-start confidence messages
 - Calibrated recommendation confidence system (`pkg/confidence`) with five-factor breakdowns, isotonic calibration, and snapshot-backed temporal stability
 - `--confidence=on|off` flag on `breakpoints` and `report`

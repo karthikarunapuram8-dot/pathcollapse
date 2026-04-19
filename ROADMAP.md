@@ -12,6 +12,7 @@
 - [x] Reporting: Markdown, JSON, HTML
 - [x] SQLite snapshot persistence (`snapshot save/list/diff/prune`)
 - [x] Calibrated recommendation confidence with per-factor breakdowns and snapshot-backed temporal stability
+- [x] Shadow-mode data collection (`--shadow-mode`) and isotonic calibrator refit (`confidence refit`)
 - [x] GitHub Actions CI + GoReleaser cross-platform binaries
 
 ## v0.2 — Live Data & Integrations
@@ -40,7 +41,7 @@
 
 - [ ] Stable CLI API (no breaking flag changes)
 - [ ] Comprehensive integration test suite against real AD lab
-- [ ] Shadow-mode confidence data collection + learned beta refit
+- [ ] Learned-β refit (logistic regression over shadow-mode data; extends the isotonic calibrator shipped in v0.1)
 - [ ] Docker / OCI image on GHCR
 - [ ] Homebrew tap
 - [ ] Operator documentation and runbooks
