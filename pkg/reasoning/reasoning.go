@@ -25,13 +25,13 @@ const (
 
 // PathAnalysis is the result of reasoning over a single path.
 type PathAnalysis struct {
-	Path               graph.Path
-	Score              float64
-	Realistic          bool
-	AverageConfidence  float64
-	AverageDetect      float64
+	Path                 graph.Path
+	Score                float64
+	Realistic            bool
+	AverageConfidence    float64
+	AverageDetect        float64
 	MissingPreconditions []string
-	RemediationHints   []string
+	RemediationHints     []string
 }
 
 // Reasoner analyses paths from a graph using a chosen mode.
@@ -75,9 +75,9 @@ func (r *Reasoner) FindAndAnalyse(fromID, toID string, mode Mode, opts graph.Pat
 
 func (r *Reasoner) reachability(p graph.Path) PathAnalysis {
 	return PathAnalysis{
-		Path:       p,
-		Score:      scoring.ScorePath(p, r.g, r.cfg),
-		Realistic:  len(p.Edges) > 0,
+		Path:      p,
+		Score:     scoring.ScorePath(p, r.g, r.cfg),
+		Realistic: len(p.Edges) > 0,
 	}
 }
 

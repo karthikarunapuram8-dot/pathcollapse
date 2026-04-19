@@ -28,13 +28,13 @@ type Adapter interface {
 type AdapterType string
 
 const (
-	AdapterGenericJSON  AdapterType = "json"
-	AdapterCSVUsers     AdapterType = "csv_users"
-	AdapterCSVGroups    AdapterType = "csv_groups"
+	AdapterGenericJSON   AdapterType = "json"
+	AdapterCSVUsers      AdapterType = "csv_users"
+	AdapterCSVGroups     AdapterType = "csv_groups"
 	AdapterCSVLocalAdmin AdapterType = "csv_local_admin"
-	AdapterCSVGPO       AdapterType = "csv_gpo"
-	AdapterBloodHound   AdapterType = "bloodhound"
-	AdapterYAMLFacts    AdapterType = "yaml"
+	AdapterCSVGPO        AdapterType = "csv_gpo"
+	AdapterBloodHound    AdapterType = "bloodhound"
+	AdapterYAMLFacts     AdapterType = "yaml"
 )
 
 // Get returns the adapter for the given type.

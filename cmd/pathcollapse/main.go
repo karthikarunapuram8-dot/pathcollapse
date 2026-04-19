@@ -26,6 +26,7 @@ the minimal control changes that collapse the highest-risk paths.`,
 		subcmd.NewDiffCmd(),
 		subcmd.NewBreakpointsCmd(),
 		subcmd.NewSnapshotCmd(),
+		subcmd.NewConfidenceCmd(),
 	)
 
 	if err := root.Execute(); err != nil {

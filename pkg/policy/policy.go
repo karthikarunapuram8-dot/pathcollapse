@@ -12,8 +12,8 @@ import (
 type RuleType string
 
 const (
-	RuleNoPrivilegedMembership RuleType = "no_privileged_membership"
-	RuleNoUnconstrained        RuleType = "no_unconstrained_delegation"
+	RuleNoPrivilegedMembership  RuleType = "no_privileged_membership"
+	RuleNoUnconstrained         RuleType = "no_unconstrained_delegation"
 	RuleServiceAccountIsolation RuleType = "service_account_isolation"
 )
 
@@ -27,10 +27,10 @@ type Rule struct {
 
 // Violation is a rule breach found in the graph.
 type Violation struct {
-	Rule    Rule   `json:"rule"`
-	NodeID  string `json:"node_id,omitempty"`
-	EdgeID  string `json:"edge_id,omitempty"`
-	Detail  string `json:"detail"`
+	Rule   Rule   `json:"rule"`
+	NodeID string `json:"node_id,omitempty"`
+	EdgeID string `json:"edge_id,omitempty"`
+	Detail string `json:"detail"`
 }
 
 // EvaluationResult holds all violations found.

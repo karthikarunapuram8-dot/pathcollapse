@@ -195,7 +195,7 @@ func BenchmarkFindPaths_FanOut(b *testing.B) {
 		g.AddNode(model.NewNode(sid, model.NodeGroup, sid))
 		g.AddEdge(model.NewEdge("hs-"+sid, model.EdgeMemberOf, "hub", sid))
 		for l := 0; l < leaves; l++ {
-			lid := intStr(1000+s*leaves+l)
+			lid := intStr(1000 + s*leaves + l)
 			g.AddNode(model.NewNode(lid, model.NodeUser, lid))
 			g.AddEdge(model.NewEdge("sl-"+lid, model.EdgeMemberOf, sid, lid))
 		}

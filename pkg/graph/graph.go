@@ -27,11 +27,11 @@ var (
 // Graph is a concurrency-safe directed multi-graph of identity nodes and edges.
 // Forward and reverse adjacency indexes are maintained for O(1) neighbor lookup.
 type Graph struct {
-	mu       sync.RWMutex
-	nodes    map[string]*model.Node
-	edges    map[string]*model.Edge
-	forward  map[string][]string // nodeID → []edgeID
-	reverse  map[string][]string // nodeID → []edgeID (incoming)
+	mu      sync.RWMutex
+	nodes   map[string]*model.Node
+	edges   map[string]*model.Edge
+	forward map[string][]string // nodeID → []edgeID
+	reverse map[string][]string // nodeID → []edgeID (incoming)
 }
 
 // New returns an empty Graph.

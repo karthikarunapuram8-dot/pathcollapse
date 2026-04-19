@@ -55,13 +55,15 @@ func ResolveConfidence(cmd *cobra.Command, mode string, quiet bool) (*controls.C
 }
 
 // buildConfidenceOptions assembles the ConfidenceOptions, attaching a
-// snapshot-backed Presence when history is available. Errors opening the
-// DB are not propagated — we degrade to cold-start with a stderr note
-// rather than block the user's workflow on an optional enrichment path.
+// snapshot-backed Presence when history is available and a saved
+// isotonic calibrator when one exists on disk. Errors opening either
+// are not propagated — we degrade to cold-start with a stderr note
+// rather than block the user's workflow on optional enrichment paths.
 func buildConfidenceOptions(stderr io.Writer) *controls.ConfidenceOptions {
 	opts := &controls.ConfidenceOptions{
 		ScoringCfg: scoring.DefaultConfig(),
 		Config:     confidence.DefaultConfig(),
+		Calibrator: loadSavedCalibrator(stderr),
 	}
 
 	dbPath, err := snapshot.DefaultDBPath()
@@ -100,6 +102,24 @@ func buildConfidenceOptions(stderr io.Writer) *controls.ConfidenceOptions {
 
 	opts.Snapshots = presence
 	return opts
+}
+
+// loadSavedCalibrator returns a previously-fitted calibrator if one exists
+// on disk, or nil if not (cold-start). Load failures emit an INFO note
+// and return nil — the legacy IdentityCalibrator then applies inside
+// confidence.ScoreEdge.
+func loadSavedCalibrator(stderr io.Writer) confidence.Calibrator {
+	path, err := confidence.DefaultCalibratorPath()
+	if err != nil {
+		return nil
+	}
+	cal, err := confidence.LoadCalibrator(path)
+	if err != nil {
+		fmt.Fprintf(stderr, "INFO: confidence: saved calibrator at %s unreadable: %s — using identity calibrator\n",
+			path, err.Error())
+		return nil
+	}
+	return cal // may be nil (file doesn't exist) — that's the cold-start signal
 }
 
 // noteColdStart writes a single stderr line explaining the degradation.

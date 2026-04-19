@@ -18,12 +18,12 @@ type ATTACKTechnique struct {
 
 // DetectionArtefact bundles all detection content for one path.
 type DetectionArtefact struct {
-	PathDescription string            `json:"path_description"`
-	LogSources      []string          `json:"log_sources"`
-	MissingTelemetry []string         `json:"missing_telemetry"`
-	SigmaRule       string            `json:"sigma_rule"`
-	KQLQuery        string            `json:"kql_query"`
-	SPLQuery        string            `json:"spl_query"`
+	PathDescription  string            `json:"path_description"`
+	LogSources       []string          `json:"log_sources"`
+	MissingTelemetry []string          `json:"missing_telemetry"`
+	SigmaRule        string            `json:"sigma_rule"`
+	KQLQuery         string            `json:"kql_query"`
+	SPLQuery         string            `json:"spl_query"`
 	ATTACKTechniques []ATTACKTechnique `json:"attack_techniques"`
 }
 
