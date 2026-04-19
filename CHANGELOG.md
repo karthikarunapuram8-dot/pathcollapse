@@ -25,6 +25,3 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 - Breakpoint recommendations now emit calibrated confidence by default instead of the legacy static `0.85`; `--confidence off` preserves the old behavior for A/B comparison
 - Markdown, JSON, and HTML reports now include recommendation-confidence context, factor breakdowns, and regime information when confidence scoring is enabled
 - README and examples updated to document calibrated confidence, shadow mode, and the current install path
-
-### Removed
-- `pkg/providers` — unused provider stub package with no callers
