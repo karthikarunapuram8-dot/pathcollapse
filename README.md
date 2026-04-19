@@ -29,7 +29,7 @@ The same run produces a single-file HTML report for CISO review:
 - **Detection mapper** — generates path-aware ATT&CK mappings, log-source guidance, telemetry requirements, and templated Sigma/KQL/SPL content
 - **Drift detection** — snapshot diffing highlights new privileged memberships, delegation changes, cert template drift
 - **SQLite snapshot persistence** — save, list, diff, and prune graph snapshots with `pathcollapse snapshot`
-- **HTML reports** — single-file CISO-ready reports with executive summary, risk paths, breakpoints, detection content, telemetry guidance, and drift
+- **HTML reports** — single-file reports with executive summary, risk paths, breakpoints, detection content, telemetry guidance, and drift
 - **Analyst DSL** — human-readable query language: `FIND PATHS FROM user:alice TO privilege:tier0 WHERE confidence > 0.7`
 - **Multiple ingestion formats** — Generic JSON, CSV (users/groups/admins/GPOs), BloodHound JSON exports, YAML facts
 
