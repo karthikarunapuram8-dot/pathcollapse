@@ -183,6 +183,30 @@ both `breakpoints` and `report`.
 
 See [docs/confidence.md](docs/confidence.md) for the full algorithm.
 
+### Shadow-Mode Calibration Loop
+
+Use shadow mode when you want to collect real outcomes before trusting the
+calibrated score in production decisions.
+
+```bash
+# 1. Keep analyst-facing output unbiased while logging the raw score + factors
+pathcollapse breakpoints --graph snapshot.json --top 5 --shadow-mode
+
+# 2. Check collection progress and whether a saved calibrator exists
+pathcollapse confidence status
+
+# 3. After you annotate observed_collapsed / observed_regression in
+#    ~/.pathcollapse/shadow.jsonl, fit and save the calibrator
+pathcollapse confidence refit --require-minimum 50
+
+# 4. Future runs auto-load ~/.pathcollapse/calibrator.json
+pathcollapse breakpoints --graph snapshot.json --top 5 --confidence on
+```
+
+`pathcollapse confidence status` shows how many labeled rows you have toward
+the `partial` (50 labels) and `calibrated` (500 labels) regimes, plus the
+fit-time Brier / ECE metrics for any saved calibrator.
+
 ---
 
 ## Architecture Overview

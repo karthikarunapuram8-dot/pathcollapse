@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -18,13 +19,66 @@ func NewConfidenceCmd() *cobra.Command {
 		Short: "Manage the calibrated recommendation confidence system",
 		Long: `Commands for working with the calibrated confidence system:
 
+  status   Show shadow-log progress and saved calibrator metadata
   refit    Fit an isotonic calibrator from a shadow-mode JSONL log and
            persist it so subsequent 'breakpoints --confidence on' runs
            produce calibrated (rather than cold-start) scores.
 
 See docs/confidence.md for the algorithm.`,
 	}
-	cmd.AddCommand(newConfidenceRefitCmd())
+	cmd.AddCommand(
+		newConfidenceStatusCmd(),
+		newConfidenceRefitCmd(),
+	)
+	return cmd
+}
+
+func newConfidenceStatusCmd() *cobra.Command {
+	var (
+		logPath        string
+		calibratorPath string
+	)
+
+	cmd := &cobra.Command{
+		Use:   "status",
+		Short: "Show shadow-mode collection progress and calibrator status",
+		Long: `Displays the current shadow-mode JSONL statistics and any saved
+calibrator metadata so operators can see how close they are to the
+'partial' (50 labels) and 'calibrated' (500 labels) regimes.`,
+		Example: `  pathcollapse confidence status
+  pathcollapse confidence status --log ./shadow.jsonl --calibrator ./cal.json`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if logPath == "" {
+				var err error
+				logPath, err = confidence.DefaultShadowLogPath()
+				if err != nil {
+					return err
+				}
+			}
+			if calibratorPath == "" {
+				var err error
+				calibratorPath, err = confidence.DefaultCalibratorPath()
+				if err != nil {
+					return err
+				}
+			}
+
+			_, stats, err := confidence.ReadShadowLog(logPath)
+			if err != nil {
+				return fmt.Errorf("read shadow log: %w", err)
+			}
+			meta, err := confidence.LoadCalibratorMetadata(calibratorPath)
+			if err != nil {
+				return fmt.Errorf("read calibrator: %w", err)
+			}
+
+			printConfidenceStatus(cmd.OutOrStdout(), logPath, calibratorPath, stats, meta)
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&logPath, "log", "", "Path to the shadow JSONL log (default: ~/.pathcollapse/shadow.jsonl)")
+	cmd.Flags().StringVar(&calibratorPath, "calibrator", "", "Path to the saved calibrator (default: ~/.pathcollapse/calibrator.json)")
 	return cmd
 }
 
@@ -104,6 +158,60 @@ log-odds aggregation.`,
 	cmd.Flags().IntVar(&requireMinimum, "require-minimum", 1, "Refuse to fit unless at least N labeled entries are available")
 	AddQuietFlag(cmd, &quiet)
 	return cmd
+}
+
+func printConfidenceStatus(
+	w io.Writer,
+	logPath string,
+	calibratorPath string,
+	stats confidence.ReadStats,
+	meta *confidence.CalibratorMetadata,
+) {
+	labeled := stats.Labeled
+	unlabeled := stats.Parsed - stats.Labeled
+
+	fmt.Fprintln(w, "Shadow-mode collection")
+	fmt.Fprintf(w, "  log path:            %s\n", logPath)
+	fmt.Fprintf(w, "  total lines:         %d\n", stats.TotalLines)
+	fmt.Fprintf(w, "  parsed entries:      %d\n", stats.Parsed)
+	fmt.Fprintf(w, "  malformed lines:     %d\n", stats.Malformed)
+	fmt.Fprintf(w, "  labeled entries:     %d\n", labeled)
+	fmt.Fprintf(w, "  unlabeled entries:   %d\n", unlabeled)
+	fmt.Fprintf(w, "  to partial (50):     %s\n", progressString(labeled, 50))
+	fmt.Fprintf(w, "  to calibrated (500): %s\n", progressString(labeled, 500))
+
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Saved calibrator")
+	fmt.Fprintf(w, "  path:                %s\n", calibratorPath)
+	if meta == nil {
+		fmt.Fprintln(w, "  status:              none saved yet")
+		fmt.Fprintln(w, "  auto-load:           cold-start / identity calibrator remains active")
+		return
+	}
+
+	fmt.Fprintln(w, "  status:              present")
+	fmt.Fprintf(w, "  fit time (UTC):      %s\n", meta.FitTime.Format(time.RFC3339))
+	fmt.Fprintf(w, "  training labels:     %d\n", meta.TrainingLabels)
+	fmt.Fprintf(w, "  regime:              %s\n", meta.Regime)
+	fmt.Fprintf(w, "  brier:               %.4f\n", meta.Brier)
+	fmt.Fprintf(w, "  brier baseline:      %.4f\n", meta.BrierBaseline)
+	fmt.Fprintf(w, "  brier improvement:   %s\n", brierImprovementString(meta.Brier, meta.BrierBaseline))
+	fmt.Fprintf(w, "  ece:                 %.4f\n", meta.ECE)
+	fmt.Fprintln(w, "  auto-load:           will be used by 'breakpoints/report --confidence on'")
+}
+
+func progressString(current, target int) string {
+	if current >= target {
+		return fmt.Sprintf("%d/%d (ready)", current, target)
+	}
+	return fmt.Sprintf("%d/%d (%d remaining)", current, target, target-current)
+}
+
+func brierImprovementString(brier, baseline float64) string {
+	if baseline == 0 {
+		return "n/a"
+	}
+	return fmt.Sprintf("%+.1f%% vs baseline", 100*(baseline-brier)/baseline)
 }
 
 func printRefitSummary(w io.Writer, r *confidence.RefitResult, outputPath string) {

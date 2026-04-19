@@ -122,3 +122,29 @@ for _, t := range art.ATTACKTechniques {
     fmt.Printf("%s: %s\n", t.ID, t.Name)
 }
 ```
+
+## Workflow 7: Shadow-Mode Confidence Calibration
+
+```bash
+# 1. Collect recommendations without exposing the unvalidated score to analysts
+pathcollapse breakpoints --graph snapshot.json --top 5 --shadow-mode
+
+# 2. Inspect how many labeled outcomes you have so far
+pathcollapse confidence status
+
+# 3. Annotate ~/.pathcollapse/shadow.jsonl once outcomes are known
+#    observed_collapsed=true|false
+#    observed_regression=true|false
+
+# 4. Fit and persist the calibrator after you have enough labels
+pathcollapse confidence refit --require-minimum 50
+
+# 5. Subsequent runs auto-load ~/.pathcollapse/calibrator.json
+pathcollapse breakpoints --graph snapshot.json --top 5 --confidence on
+```
+
+What `confidence status` tells you:
+- How many shadow-log entries were parsed and how many are labeled
+- Progress toward `partial` (50 labels) and `calibrated` (500 labels)
+- Whether a saved calibrator exists and will auto-load
+- Brier / ECE metrics from the last refit

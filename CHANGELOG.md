@@ -5,6 +5,7 @@ All notable changes are documented here. The format follows [Keep a Changelog](h
 ## [Unreleased]
 
 ### Added
+- `pathcollapse confidence status` command to show shadow-log counts, progress toward `partial` / `calibrated`, and fit-time metadata for any saved calibrator
 - **Shadow-mode calibration harness** (closes [#9](https://github.com/karthikarunapuram8-dot/pathcollapse/issues/9))
   - `--shadow-mode` flag on `breakpoints` appends one JSONL line per recommendation to `~/.pathcollapse/shadow.jsonl`, capturing the full five-factor breakdown and raw aggregated score. Display is hidden behind the legacy `0.85` so analyst decisions aren't biased by unvalidated scores during the collection period.
   - `pathcollapse confidence refit` command reads the shadow log, extracts entries where `observed_collapsed` has been annotated, fits an isotonic-regression calibrator via Pool-Adjacent-Violators, and persists it to `~/.pathcollapse/calibrator.json`. Prints Brier score, Brier baseline (vs constant `0.85`), improvement percentage, Expected Calibration Error (ECE), regime, and per-decile reliability buckets.

@@ -174,6 +174,34 @@ func TestLoadCalibrator_MissingFile(t *testing.T) {
 	}
 }
 
+func TestLoadCalibratorMetadata_RoundTrip(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "cal.json")
+	r, err := Refit([]ShadowEntry{mkLabeled(0.2, 0), mkLabeled(0.8, 1)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := SaveCalibrator(path, r); err != nil {
+		t.Fatal(err)
+	}
+
+	meta, err := LoadCalibratorMetadata(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta == nil {
+		t.Fatal("expected metadata")
+	}
+	if meta.TrainingLabels != r.LabeledCount {
+		t.Errorf("TrainingLabels = %d, want %d", meta.TrainingLabels, r.LabeledCount)
+	}
+	if meta.Regime != r.Regime {
+		t.Errorf("Regime = %s, want %s", meta.Regime, r.Regime)
+	}
+	if meta.Brier != r.Brier {
+		t.Errorf("Brier = %v, want %v", meta.Brier, r.Brier)
+	}
+}
+
 func TestLoadCalibrator_RejectsBadVersion(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "bad.json")
 	if err := os.WriteFile(path, []byte(`{"version": 99, "breakpoints": [], "values": []}`), 0o600); err != nil {

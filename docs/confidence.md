@@ -582,8 +582,15 @@ an optional `*confidence.Calibrator`. When nil, fall back to the current
 `0.85` behaviour for backward compatibility. When non-nil, populate
 `Breakdown` and `Regime`.
 
-CLI flag: `--confidence=on|off` on `pathcollapse breakpoints` and
-`pathcollapse analyze`, default `on` once the implementation ships.
+CLI flags and commands:
+
+- `--confidence=on|off` on `pathcollapse breakpoints` and
+  `pathcollapse report`, default `on`
+- `--shadow-mode` on `pathcollapse breakpoints` to log raw scores without
+  exposing them to analysts during collection
+- `pathcollapse confidence status` to inspect label progress and any saved
+  calibrator
+- `pathcollapse confidence refit` to fit and persist the isotonic calibrator
 
 ### 8.4 Reporting
 

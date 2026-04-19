@@ -182,6 +182,19 @@ type calibratorFileStats struct {
 
 const calibratorFileVersion = 1
 
+// CalibratorMetadata is the operator-facing metadata stored alongside a fitted
+// calibrator. Use this for status/reporting commands that need to show whether
+// a saved calibrator exists and how it performed at fit time.
+type CalibratorMetadata struct {
+	Version        int
+	TrainingLabels int
+	Regime         Regime
+	FitTime        time.Time
+	Brier          float64
+	BrierBaseline  float64
+	ECE            float64
+}
+
 // DefaultCalibratorPath returns ~/.pathcollapse/calibrator.json.
 func DefaultCalibratorPath() (string, error) {
 	home, err := os.UserHomeDir()
@@ -230,11 +243,7 @@ func SaveCalibrator(path string, r *RefitResult) error {
 	return nil
 }
 
-// LoadCalibrator reads a previously-saved calibrator. Returns
-// (nil, nil) when the file doesn't exist — callers interpret as cold-start
-// and use IdentityCalibrator. A corrupt file returns an error so the
-// caller can decide to fail closed or warn and fall back.
-func LoadCalibrator(path string) (Calibrator, error) {
+func readCalibratorFile(path string) (*calibratorFile, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -252,10 +261,47 @@ func LoadCalibrator(path string) (Calibrator, error) {
 	if len(cf.Breakpoints) != len(cf.Values) {
 		return nil, fmt.Errorf("confidence: calibrator has mismatched breakpoints (%d) and values (%d)", len(cf.Breakpoints), len(cf.Values))
 	}
+	return &cf, nil
+}
+
+// LoadCalibrator reads a previously-saved calibrator. Returns
+// (nil, nil) when the file doesn't exist — callers interpret as cold-start
+// and use IdentityCalibrator. A corrupt file returns an error so the
+// caller can decide to fail closed or warn and fall back.
+func LoadCalibrator(path string) (Calibrator, error) {
+	cf, err := readCalibratorFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if cf == nil {
+		return nil, nil
+	}
 	ic := &IsotonicCalibrator{
 		breakpoints: cf.Breakpoints,
 		values:      cf.Values,
 		n:           cf.NTrainingLabels,
 	}
 	return ic, nil
+}
+
+// LoadCalibratorMetadata returns the fit-time metadata stored with a saved
+// calibrator. Missing file is not an error and returns (nil, nil), matching
+// LoadCalibrator's cold-start behavior.
+func LoadCalibratorMetadata(path string) (*CalibratorMetadata, error) {
+	cf, err := readCalibratorFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if cf == nil {
+		return nil, nil
+	}
+	return &CalibratorMetadata{
+		Version:        cf.Version,
+		TrainingLabels: cf.NTrainingLabels,
+		Regime:         cf.Regime,
+		FitTime:        cf.FitTime,
+		Brier:          cf.Metrics.Brier,
+		BrierBaseline:  cf.Metrics.BrierBaseline,
+		ECE:            cf.Metrics.ECE,
+	}, nil
 }
